@@ -4,17 +4,27 @@ using Packbuilder.Dto;
 using Packbuilder.Interfaces;
 using Packbuilder.Models;
 
-namespace Packbuilder.Controllers
+namespace Packbuilder.Controllers.ModpackControllers
 {
     [ApiController]
     [Route("{username}/modpacks")]
     public class ModpackController(PackbuilderContext context, ISessionService sessionService) : ControllerBase
     {
         [HttpGet("{slug:string}")]
-        [EndpointName("GetModpacks")]
-        public async Task<ActionResult<User>> GetModpack([FromRoute] int id)
+        [EndpointName("GetModpack")]
+        public async Task<ActionResult<Modpack>> GetModpack([FromRoute] string slug)
         {
-            return Ok(await context.Modpacks.SingleOrDefaultAsync(m => m.Id == id));
+            Modpack? modpack = await context.Modpacks
+                .Include(m => m.Versions.OrderByDescending(v => v.Iteration).Take(1))
+                    .ThenInclude(v => v.VersionMods)
+                        .ThenInclude(v => v.ModId).SingleOrDefaultAsync(m => m.Slug == slug);
+
+            if (modpack is null)
+            {
+                return NotFound();
+            }
+
+            return Ok(modpack);
         }
 
         [HttpPost]
@@ -90,5 +100,7 @@ namespace Packbuilder.Controllers
             await context.SaveChangesAsync();
             return Ok(modpack);
         }
+
+        
     }
 }

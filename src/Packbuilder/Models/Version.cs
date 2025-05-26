@@ -5,9 +5,11 @@ namespace Packbuilder.Models
     [Table("versions")]
     public class Version : BaseModel
     {
-        [Column("modpacks")]
-        public required Modpack Modpack { get; set; }
+        [Column("modpack_id")]
+        public required int ModpackId { get; set; }
         [Column("iterations")]
-        public required int Iteration { get; set; }
+        public required float Iteration { get; set; }
+        public virtual Modpack Modpack { get; set; } = null!;
+        public virtual ICollection<VersionMod> VersionMods { get; set; } = null!;
     }
 }
