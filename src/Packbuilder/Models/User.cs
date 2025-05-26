@@ -1,20 +1,37 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Packbuilder.Models.enums;
+using Packbuilder.Validators;
 
 namespace Packbuilder.Models
 {
     [Table("users")]
-    public class User : BaseModel
+    [Index(nameof(Name), IsUnique = true)]
+    [Index(nameof(Email), IsUnique = true)]
+    public class User : ModelBase
     {
-        [MaxLength(20)]
+        [Required]
+        [Name]
         [Column("name")]
         public required string Name { get; set; }
+        [Required]
+        [EmailAddress]
         [Column("email")]
-        public string? Email { get; set; }
-        [Column("avatar")]
-        public required string Avatar { get; set; }
+        public required string Email { get; set; }
+        [Required]
+        [Column("image_type")]
+        public required ImageType ImageType { get; set; }
+        [Required]
+        [Column("image_value")]
+        public required string ImageValue { get; set; }
+        [Column("email_verified")]
+        public bool EmailVerified { get; set; } = false;
         [Column("password_digest")]
         [JsonIgnore]
         [Required]

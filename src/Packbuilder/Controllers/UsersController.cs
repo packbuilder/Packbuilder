@@ -1,38 +1,94 @@
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Packbuilder.Dto;
+using Packbuilder.Dto.Create;
+using Packbuilder.Dto.Update;
+using Packbuilder.Interfaces;
 using Packbuilder.Models;
+using Packbuilder.Jobs;
+using StackExchange.Redis;
+using Packbuilder.Attributes;
+using Packbuilder.RateLimits;
 
 namespace Packbuilder.Controllers
 {
     [ApiController]
     [Route("users")]
-    public class UsersController(IPasswordHasher<User> passwordHasher, PackbuilderContext context) : ControllerBase
+    public class UsersController(PackbuilderContext context, ISessionService sessionService, IUserService userService, IConnectionMultiplexer redis) : ControllerBase
     {
         [HttpGet("{id:int}")]
-        [EndpointName("GetUsers")]
-        public async Task<ActionResult<User>> GetUser([FromRoute] int id)
+        [EndpointName("GetUserById")]
+        public async Task<ActionResult<User>> GetUserById([FromRoute] int id)
         {
             return Ok(await context.Users.SingleOrDefaultAsync(u => u.Id == id));
         }
-
+        
+        [RateLimit(RateLimitBuckets.Auth)]
         [HttpPost]
         [EndpointName("CreateAccount")]
-        public async Task<ActionResult<User>> PostUser([FromBody] CreateUserDto body)
+        public async Task<ActionResult> PostUser([FromBody] CreateUserDto body)
         {
-            User user = new User()
+            User? existingUsername = await context.Users.SingleOrDefaultAsync(u => u.Name == body.Name);
+            User? existingEmail = await context.Users.SingleOrDefaultAsync(u => u.Email == body.Email);
+
+            if(existingUsername is not null || existingEmail is not null)
             {
-                Name = body.Name,
-                Email = body.Email,
-                Avatar = "Use generic avatar link or something"
-            };
+                return BadRequest();
+            }
 
-            user.SetPassword(passwordHasher, body.Password);
+            int userId = await userService.CreateAccountAsync(body);
 
-            context.Users.Add(user);
-            await context.SaveChangesAsync();
+            await redis.GetSubscriber().PublishAsync(SendVerificationEmailJob.ChannelName, userId);
+
+            return Ok(userId);
+        }
+
+        [RateLimit(RateLimitBuckets.ProfileWrite)]
+        [Authorize]
+        [HttpPut("{userId}")]
+        [EndpointName("UpdateUser")]
+        public async Task<ActionResult> UpdateUser([FromBody] UpdateUserDto body, [FromRoute] int userId)
+        {
+            User? currentUser = await sessionService.GetCurrentUser();
+
+            User? user = await context.Users.SingleOrDefaultAsync(u => u.Id == userId);
+
+            if (user is null)
+            {
+                return NotFound();
+            }
+
+            if(currentUser is null || currentUser.Id != user?.Id)
+            {
+                return Unauthorized();
+            }
+
+            await userService.UpdateAccountAsync(body, userId);
+
             return Ok(user);
+        }
+
+        [Authorize]
+        [HttpDelete("{userId}")]
+        public async Task<ActionResult> DeleteUser([FromRoute] int userId)
+        {
+            User? currentUser = await sessionService.GetCurrentUser();
+
+            User? user = await context.Users.SingleOrDefaultAsync(u => u.Id == userId);
+
+            if (user is null)
+            {
+                return NotFound();
+            }
+
+            if (currentUser is null || currentUser.Id != user.Id)
+            {
+                return Unauthorized();
+            }
+
+            await userService.DeleteAccountAsync(userId);
+
+            return Ok();
         }
     }
 }

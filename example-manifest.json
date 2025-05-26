@@ -1,0 +1,20 @@
+{
+  "manifestVersion": 1,
+  "formatVersion": 1,
+  "name": "My Awesome Modpack",
+  "version": "1.0.0",
+  "author": "Your Name",
+  "files": [
+    {
+      "projectID": 284230,
+      "fileID": 316609,
+      "required": true
+    },
+    {
+      "projectID": 238229,
+      "fileID": 365779,
+      "required": true
+    }
+  ],
+  "overrides": "overrides"
+}

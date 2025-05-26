@@ -1,0 +1,36 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+      - valkey
+    environment:
+      ConnectionStrings__DefaultConnection: Host=database;Port=5432;Database=packbuilder;Username=postgres;Password=postgres
+      ConnectionStrings__Redis: valkey:6379
+
+  database:
+    image: postgres:17
+    ports:
+      - "5432:5432"
+    volumes:
+      - packbuilder-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: packbuilder
+
+  valkey:
+    image: valkey/valkey:7
+    ports:
+      - "6379:6379"
+    volumes:
+      - packbuilder-valkey-data:/data
+    command: ["valkey-server", "--appendonly", "yes"]
+
+volumes:
+  packbuilder-data:
+  packbuilder-valkey-data:

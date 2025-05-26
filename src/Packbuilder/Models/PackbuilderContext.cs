@@ -13,11 +13,11 @@ public class PackbuilderContext : DbContext
 
     private void UpdateTimestamps()
     {
-        IEnumerable<EntityEntry<BaseModel>> entries = ChangeTracker.Entries().OfType<EntityEntry<BaseModel>>();
+        IEnumerable<EntityEntry<ModelBase>> entries = ChangeTracker.Entries().OfType<EntityEntry<ModelBase>>();
 
-        foreach (EntityEntry<BaseModel> entry in entries)
+        foreach (EntityEntry<ModelBase> entry in entries)
         {
-            BaseModel entity = entry.Entity;
+            ModelBase entity = entry.Entity;
             entity.Bump();
         }
     }
@@ -51,6 +51,7 @@ public class PackbuilderContext : DbContext
     public DbSet<Mod> Mods { get; set; }
     public DbSet<Modification> Modifications { get; set; }
     public DbSet<Suggestion> Suggestions { get; set; }
-    public DbSet<Version> Versions { get; set; }
+    public DbSet<ModpackVersion> Versions { get; set; }
+    public DbSet<Bookmark> Bookmarks { get; set; }
     public DbSet<VersionMod> VersionMods { get; set; }
 }

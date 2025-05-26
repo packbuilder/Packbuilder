@@ -1,14 +1,18 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Xml.Serialization;
+using Microsoft.EntityFrameworkCore;
+using Packbuilder.Models.enums;
 
 namespace Packbuilder.Models
 {
     [Table("mods")]
-    public class Mod : BaseModel
+    [Index(nameof(ReferenceId), IsUnique = true)]
+    public class Mod : ModelBase
     {
+        [Required]
         [Column("platform")]
-        public required Platform Platform { get; set; }
+        public required ModPlatform Platform { get; set; }
+        [Required]
         [Column("reference_id")]
         public required string ReferenceId { get; set; }
     }
