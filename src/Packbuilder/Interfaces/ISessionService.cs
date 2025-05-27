@@ -1,4 +1,4 @@
-using Packbuilder.Dto;
+using Packbuilder.Dto.Create;
 using Packbuilder.Models;
 
 namespace Packbuilder.Interfaces

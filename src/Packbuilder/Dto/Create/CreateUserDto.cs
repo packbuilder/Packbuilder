@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Packbuilder.Dto
+namespace Packbuilder.Dto.Create
 {
     public class CreateUserDto
     {

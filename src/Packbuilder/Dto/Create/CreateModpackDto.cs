@@ -1,12 +1,10 @@
 using System.Text.Json.Serialization;
-using Packbuilder.Models;
 
-namespace Packbuilder.Dto
+namespace Packbuilder.Dto.Create
 {
     public class CreateModpackDto
     {
         [JsonPropertyName("name")]
         public required string Name { get; set; }
-        //Deep dive on that avatar shit brotha
     }
 }
