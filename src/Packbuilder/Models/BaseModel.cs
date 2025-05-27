@@ -5,7 +5,7 @@ using Microsoft.VisualBasic;
 
 namespace Packbuilder.Models
 {
-    public class BaseModel
+    public class ModelBase
     {
         [Key]
         [Column("id")]

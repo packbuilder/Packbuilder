@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Packbuilder.Models
 {
     [Table("versions")]
-    public class Version : BaseModel
+    public class Version : ModelBase
     {
         [Column("modpack_id")]
         public required int ModpackId { get; set; }

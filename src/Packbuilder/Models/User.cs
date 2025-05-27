@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Identity;
 namespace Packbuilder.Models
 {
     [Table("users")]
-    public class User : BaseModel
+    public class User : ModelBase
     {
         [MaxLength(20)]
         [Column("name")]

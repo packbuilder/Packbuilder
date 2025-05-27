@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 namespace Packbuilder.Models
 {
     [Table("mods")]
-    public class Mod : BaseModel
+    public class Mod : ModelBase
     {
         [Column("platform")]
         public required Platform Platform { get; set; }

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Packbuilder.Models
 {
     [Table("modifications")]
-    public class Modification : BaseModel
+    public class Modification : ModelBase
     {
         [Column("mod_id")]
         public required int ModId { get; set; }

@@ -13,11 +13,11 @@ public class PackbuilderContext : DbContext
 
     private void UpdateTimestamps()
     {
-        IEnumerable<EntityEntry<BaseModel>> entries = ChangeTracker.Entries().OfType<EntityEntry<BaseModel>>();
+        IEnumerable<EntityEntry<ModelBase>> entries = ChangeTracker.Entries().OfType<EntityEntry<ModelBase>>();
 
-        foreach (EntityEntry<BaseModel> entry in entries)
+        foreach (EntityEntry<ModelBase> entry in entries)
         {
-            BaseModel entity = entry.Entity;
+            ModelBase entity = entry.Entity;
             entity.Bump();
         }
     }

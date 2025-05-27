@@ -1,4 +1,4 @@
 namespace Packbuilder.Exceptions
 {
-    public class InvalidActionException(string message) : BaseException(message);
+    public class InvalidActionException(string message) : ExceptionBase(message);
 }

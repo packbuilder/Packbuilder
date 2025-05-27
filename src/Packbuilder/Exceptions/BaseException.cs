@@ -1,10 +1,10 @@
 namespace Packbuilder.Exceptions
 {
     [Serializable]
-    public class BaseException : Exception
+    public class ExceptionBase : Exception
     {
-        public BaseException() { }
-        public BaseException(string message) : base(message) { }
-        public BaseException(string message, Exception inner) : base(message, inner) { }
+        public ExceptionBase() { }
+        public ExceptionBase(string message) : base(message) { }
+        public ExceptionBase(string message, Exception inner) : base(message, inner) { }
     }
 }

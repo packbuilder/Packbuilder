@@ -18,7 +18,7 @@ namespace Packbuilder.Controllers
             {
                 return await sessionService.CreateSession(sessionDto);
             }
-            catch (BaseException)
+            catch (ExceptionBase)
             {
                 return Unauthorized();
             }

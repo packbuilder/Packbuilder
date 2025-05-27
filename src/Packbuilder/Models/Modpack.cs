@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Components;
 namespace Packbuilder.Models
 {
     [Table("modpack")]
-    public partial class Modpack : BaseModel
+    public partial class Modpack : ModelBase
     {
         [MaxLength(20)]
         [Column("name")]

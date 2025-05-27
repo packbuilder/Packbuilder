@@ -8,7 +8,7 @@ namespace Packbuilder.Controllers.ModpackControllers
     [Route("{username}/modpacks/{slug:string}/{versionId}")]
     public class VersionModsController(PackbuilderContext context) : ControllerBase
     {
-        [HttpGet()]
+        [HttpGet]
         [EndpointName("GetVersionMods")]
         public async Task<ActionResult<Models.Version>> GetVersion([FromRoute] int versionId)
         {
