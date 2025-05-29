@@ -4,7 +4,7 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Packbuilder.Dto;
+using Packbuilder.Dto.Create;
 using Packbuilder.Exceptions;
 using Packbuilder.Interfaces;
 using Packbuilder.Models;
@@ -12,7 +12,7 @@ using Packbuilder.Options;
 
 namespace Packbuilder.Services
 {
-    public class SessionService(JwtOptions jwtOptions, IPasswordHasher<User> passwordHasher, PackbuilderContext context) : ISessionService
+    public class SessionService(JwtOptions jwtOptions, IPasswordHasher<User> passwordHasher, PackbuilderContext context, IHttpContextAccessor httpContextAccessor) : ISessionService
     {
         public async Task<string> CreateSession(CreateSessionDto sessionDto)
         {
@@ -30,6 +30,17 @@ namespace Packbuilder.Services
             }   
 
             return GenerateJwtToken(user);
+        }
+        public Task<User?> GetCurrentUser()
+        {
+            string? userIdStr = httpContextAccessor.HttpContext!.User.Claims.SingleOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (int.TryParse(userIdStr, out int userId))
+            {
+                return context.Users.SingleOrDefaultAsync(u => userId == u.Id);
+            }
+
+            return Task.FromResult<User?>(null); 
         }
         private string GenerateJwtToken(User user)
         {

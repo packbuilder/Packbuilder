@@ -12,7 +12,7 @@ namespace Packbuilder.Models
         [Column("name")]
         public required string Name { get; set; }
         [Column("email")]
-        public string? Email { get; set; }
+        public required string Email { get; set; }
         [Column("avatar")]
         public required string Avatar { get; set; }
         [Column("password_digest")]

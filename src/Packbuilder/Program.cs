@@ -1,9 +1,12 @@
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Packbuilder.Interfaces;
 using Packbuilder.Models;
 using Packbuilder.Options;
 using Packbuilder.Services;
+
+[assembly: InternalsVisibleTo("Packbuilder.Tests")]
 
 var builder = WebApplication.CreateBuilder(args);
 
