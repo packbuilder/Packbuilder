@@ -1,3 +1,6 @@
+using System.ComponentModel;
+using System.Net.NetworkInformation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,8 +15,15 @@ namespace Packbuilder.Controllers
     [Route("users")]
     public class UsersController(IPasswordHasher<User> passwordHasher, PackbuilderContext context, ISessionService sessionService) : ControllerBase
     {
-        [HttpGet("{id:int}")]
+        [HttpGet()]
         [EndpointName("GetUsers")]
+        public async Task<ActionResult<User[]>> GetUsers([FromRoute] int id)
+        {
+            return Ok(await context.Users.ToArrayAsync());
+        }
+
+        [HttpGet("{id:int}")]
+        [EndpointName("GetUser")]
         public async Task<ActionResult<User>> GetUser([FromRoute] int id)
         {
             return Ok(await context.Users.SingleOrDefaultAsync(u => u.Id == id));
@@ -39,6 +49,7 @@ namespace Packbuilder.Controllers
 
         [HttpPut("{username}")]
         [EndpointName("UpdateUser")]
+        [Authorize]
         public async Task<ActionResult<User>> UpdateUser([FromBody] UpdateUserDto body, [FromRoute] string username)
         {
             User? currentUser = await sessionService.GetCurrentUser();
@@ -50,7 +61,12 @@ namespace Packbuilder.Controllers
                 return NotFound();
             }
 
-            if (currentUser?.Id != user.Id)
+            if (currentUser is null)
+            {
+                return NotFound();
+            }
+
+            if (currentUser.Id != user.Id)
             {
                 return Unauthorized();
             }
@@ -59,11 +75,11 @@ namespace Packbuilder.Controllers
             {
                 user.Email = body.Email;
             }
-            else if (body.Name is not null)
+            if (body.Name is not null)
             {
                 user.Name = body.Name;
             }
-            else if (body.Password is not null)
+            if (body.Password is not null)
             {
                 user.SetPassword(passwordHasher, body.Password);
             }
@@ -73,8 +89,8 @@ namespace Packbuilder.Controllers
             return Ok(user);
         }
 
-        [HttpDelete("username")]
-        [Route("DeleteUser")]
+        [Authorize]
+        [HttpDelete("{username}")]
          public async Task<ActionResult<User>> DeleteUser([FromRoute] string username)
         {
             User? currentUser = await sessionService.GetCurrentUser();

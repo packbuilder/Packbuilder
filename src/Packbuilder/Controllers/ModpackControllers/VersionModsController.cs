@@ -5,7 +5,7 @@ using Packbuilder.Models;
 namespace Packbuilder.Controllers.ModpackControllers
 {
     [ApiController]
-    [Route("{username}/modpacks/{slug:string}/{versionId}")]
+    [Route("{username}/modpacks/{slug}/{versionId}")]
     public class VersionModsController(PackbuilderContext context) : ControllerBase
     {
         [HttpGet]

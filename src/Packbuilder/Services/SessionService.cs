@@ -12,7 +12,11 @@ using Packbuilder.Options;
 
 namespace Packbuilder.Services
 {
-    public class SessionService(JwtOptions jwtOptions, IPasswordHasher<User> passwordHasher, PackbuilderContext context, IHttpContextAccessor httpContextAccessor) : ISessionService
+    public class SessionService(
+        JwtOptions jwtOptions, 
+        IPasswordHasher<User> passwordHasher, 
+        PackbuilderContext context, 
+        IHttpContextAccessor httpContextAccessor) : ISessionService
     {
         public async Task<string> CreateSession(CreateSessionDto sessionDto)
         {
@@ -47,6 +51,7 @@ namespace Packbuilder.Services
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name, user.Name),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim("Picture", user.Avatar),
                 new Claim("UpdatedAt", user.UpdatedAt.ToString("o")),
                 new Claim("CreatedAt", user.CreatedAt.ToString("o"))
@@ -61,6 +66,7 @@ namespace Packbuilder.Services
                 expires: DateTime.Now.AddDays(7),
                 signingCredentials: creds
             );
+
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }

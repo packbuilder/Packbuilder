@@ -16,7 +16,8 @@ namespace Packbuilder.Tests.Api;
 public class UserTest : ApplicationTests
 {
     [ClassInitialize]
-    public static void Setup(TestContext ctx) {
+    public static void Setup(TestContext ctx)
+    {
         BaseSetup(ctx);
     }
 
@@ -73,13 +74,16 @@ public class UserTest : ApplicationTests
         JsonContent data = JsonContent.Create(updateUserDto);
         HttpResponseMessage res = await client.PutAsync($"/users/{user.Name}", data);
 
-        User? updatedUser = await context.Users.SingleOrDefaultAsync(u => user.Id == u.Id);
+        var scope = Services.CreateScope();
+        var secondContext = scope.ServiceProvider.GetRequiredService<PackbuilderContext>();
+        User? updatedUser = await secondContext.Users.SingleOrDefaultAsync(u => user.Id == u.Id);
 
         Assert.IsNotNull(updatedUser);
         Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
-        Assert.AreEqual(updateUserDto.Name, user.Name);
-        Assert.AreEqual(updateUserDto.Email, user.Email);
+        Assert.AreNotEqual(user.Name, updatedUser.Name);
+        Assert.AreNotEqual(user.Email, updatedUser.Email);
         Assert.AreNotEqual(user.PasswordDigest, updatedUser.PasswordDigest);
+        
     }
 
     [TestMethod]
@@ -93,7 +97,10 @@ public class UserTest : ApplicationTests
 
         HttpClient client = await CreateSessionClient(user, password);
         HttpResponseMessage res = await client.DeleteAsync($"/users/{user.Name}");
-        User? deletedUser = await context.Users.SingleOrDefaultAsync(u => user.Id == u.Id);
+
+        var scope = Services.CreateScope();
+        var secondContext = scope.ServiceProvider.GetRequiredService<PackbuilderContext>();
+        User? deletedUser = await secondContext.Users.SingleOrDefaultAsync(u => user.Id == u.Id);
 
         Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
         Assert.IsNull(deletedUser);

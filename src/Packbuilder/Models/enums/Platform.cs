@@ -1,4 +1,4 @@
-namespace Packbuilder.Models.enums
+namespace Packbuilder.Models.Enums
 {
     public enum Platform
     {

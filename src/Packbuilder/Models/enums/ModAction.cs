@@ -1,6 +1,6 @@
-namespace Packbuilder.Models.enums
+namespace Packbuilder.Models.Enums
 {
-    public enum Action
+    public enum ModAction
     {
         Added,
         Removed,

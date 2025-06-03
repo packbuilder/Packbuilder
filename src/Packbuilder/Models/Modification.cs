@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using Packbuilder.Models.Enums;
 
 namespace Packbuilder.Models
 {
@@ -8,7 +9,7 @@ namespace Packbuilder.Models
         [Column("mod_id")]
         public required int ModId { get; set; }
         [Column("action")]
-        public required Action Action { get; set; }
+        public required ModAction ModAction { get; set; }
         [Column("suggestion_id")]
         public required int SuggestionId { get; set; }
         public virtual Mod Mod { get; set; } = null!;

@@ -8,9 +8,9 @@ namespace Packbuilder.Controllers.ModpackControllers
 {
     [ApiController]
     [Route("{username}/modpacks")]
-    public class ModpackController(PackbuilderContext context, ISessionService sessionService) : ControllerBase
+    public class ModpacksController(PackbuilderContext context, ISessionService sessionService) : ControllerBase
     {
-        [HttpGet("{slug:string}")]
+        [HttpGet("{slug}")]
         [EndpointName("GetModpack")]
         public async Task<ActionResult<Modpack>> GetModpack([FromRoute] string slug)
         {
@@ -51,7 +51,7 @@ namespace Packbuilder.Controllers.ModpackControllers
             return Ok(modpack);
         }
 
-        [HttpPut("{slug:string}")]
+        [HttpPut("{slug}")]
         [EndpointName("UpdateModpack")]
         public async Task<ActionResult<Modpack>> UpdateModpack(string userName, string slug, [FromBody] CreateModpackDto body)
         {
@@ -77,7 +77,7 @@ namespace Packbuilder.Controllers.ModpackControllers
             return Ok(modpack);
         }
 
-        [HttpDelete("{slug:string}")]
+        [HttpDelete("{slug}")]
         [EndpointName("DeleteModpack")]
         public async Task<ActionResult<Modpack>> DeleteModpack(string userName, string slug)
         {
