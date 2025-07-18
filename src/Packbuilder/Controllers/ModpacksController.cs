@@ -14,10 +14,13 @@ namespace Packbuilder.Controllers.ModpackControllers
         [EndpointName("GetModpack")]
         public async Task<ActionResult<Modpack>> GetModpack([FromRoute] string slug)
         {
+            // TODO: Figure out how to get the theninclude shit working
             Modpack? modpack = await context.Modpacks
                 .Include(m => m.Versions.OrderByDescending(v => v.Iteration).Take(1))
-                    .ThenInclude(v => v.VersionMods)
-                        .ThenInclude(v => v.ModId).SingleOrDefaultAsync(m => m.Slug == slug);
+                    .SingleOrDefaultAsync(m => m.Slug == slug);
+
+            //         .ThenInclude(v => v.VersionMods)
+            //             .ThenInclude(v => v.ModId).
 
             if (modpack is null)
             {

@@ -9,7 +9,7 @@ namespace Packbuilder.Models
         public required int ModId { get; set; }
         [Column("version_iteration")]
         public required float VersionIteration { get; set; }
-        public virtual Version Version { get; set; } = null!;
+        public virtual ModpackVersion Version { get; set; } = null!;
         public virtual Mod Mod { get; set; } = null!;
     }
 }

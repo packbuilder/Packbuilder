@@ -2,8 +2,6 @@
 using Packbuilder.Models;
 using Packbuilder.Dto.Create;
 using Microsoft.Extensions.DependencyInjection;
-using Packbuilder.Interfaces;
-using System.Net.Http.Headers;
 using System.Net;
 using Bogus;
 using System.Net.Http.Json;
@@ -104,20 +102,5 @@ public class UserTest : ApplicationTests
 
         Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
         Assert.IsNull(deletedUser);
-    }
-
-    private static async Task<HttpClient> CreateSessionClient(User user, string password)
-    {
-        PackbuilderWebApplicationFactory application = new();
-        ISessionService sessions = application.Services.GetRequiredService<ISessionService>();
-        string token = await sessions.CreateSession(new CreateSessionDto()
-        {
-            Email = user.Email,
-            Password = password
-        });
-        HttpClient client = application.CreateClient();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        return client;
     }
 }

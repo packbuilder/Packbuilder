@@ -51,6 +51,6 @@ public class PackbuilderContext : DbContext
     public DbSet<Mod> Mods { get; set; }
     public DbSet<Modification> Modifications { get; set; }
     public DbSet<Suggestion> Suggestions { get; set; }
-    public DbSet<Version> Versions { get; set; }
+    public DbSet<ModpackVersion> Versions { get; set; }
     public DbSet<VersionMod> VersionMods { get; set; }
 }

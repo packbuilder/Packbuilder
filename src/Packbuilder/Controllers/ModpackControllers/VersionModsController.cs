@@ -10,7 +10,7 @@ namespace Packbuilder.Controllers.ModpackControllers
     {
         [HttpGet]
         [EndpointName("GetVersionMods")]
-        public async Task<ActionResult<Models.Version>> GetVersion([FromRoute] int versionId)
+        public async Task<ActionResult<Models.ModpackVersion>> GetVersion([FromRoute] int versionId)
         {
             return Ok(await context.VersionMods.SingleOrDefaultAsync(v => v.Id == versionId));
         }
