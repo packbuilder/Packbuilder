@@ -1,6 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
+using Bogus;
 using Microsoft.Extensions.DependencyInjection;
+using Packbuilder.Dto.Create;
 using Packbuilder.Models;
 using Packbuilder.Tests.Factories;
 
@@ -21,10 +24,30 @@ public class ModpackTest : ApplicationTests
         var context = Services.GetRequiredService<PackbuilderContext>();
         var modpackFactory = Services.GetRequiredService<ModpackFactory>();
         var userFactory = Services.GetRequiredService<UserFactory>();
+
+        (User user, string password) = userFactory.CreateUser();
+        Modpack modpack = modpackFactory.CreateModpack(user);
+
+        context.Users.Add(user);
+        context.Modpacks.Add(modpack);
+        await context.SaveChangesAsync();
+
+        HttpClient client = await CreateSessionClient(user, password);
+        HttpResponseMessage res = await client.GetAsync($"{user.Name}/modpacks/{modpack.Slug}");
+        
+        Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
+    }
+
+    public async Task CreateModpackTest()
+    {
+        var context = Services.GetRequiredService<PackbuilderContext>();
+        var modpackFactory = Services.GetRequiredService<ModpackFactory>();
+        var userFactory = Services.GetRequiredService<UserFactory>();
         var modFactory = Services.GetRequiredService<ModFactory>();
 
         (User user, string password) = userFactory.CreateUser();
         Modpack modpack = modpackFactory.CreateModpack(user);
+
         List<Mod> mods = [];
         float latest = 0.0f;
 
@@ -42,18 +65,15 @@ public class ModpackTest : ApplicationTests
         context.Modpacks.Add(modpack);
         await context.SaveChangesAsync();
 
+        Faker faker = new();
         HttpClient client = await CreateSessionClient(user, password);
-        HttpResponseMessage res = await client.GetAsync($"{user.Name}/modpacks/{modpack.Slug}");
-        // TODO: Figure out how to read the response in its object format from httpresponsemessage in order to do proper comparing for your tests
-        string? resModpack = await res.Content.ReadAsStringAsync();
-
-
-        Console.WriteLine(resModpack);
-
-        // TODO: Double check my data models and make sure that there isnt a loop due to things referencing themselves
+        PackbuilderWebApplicationFactory application = new();
+        JsonContent data = JsonContent.Create(new CreateModpackDto
+        {
+            Name = faker.Name.FirstName(),
+        });
+        HttpResponseMessage res = await client.PostAsync($"{user.Name}/modpacks/CreateModpack", data);
+        
         Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
-        Assert.IsNotNull(resModpack);
-        // Assert.AreEqual(latest, resModpack.Versions.First().Iteration);
-        // Assert.AreEqual(modpack.Id, resModpack.Id);
     }
 }
