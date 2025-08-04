@@ -12,7 +12,7 @@ namespace Packbuilder.Dto.ModpackDtos
         {
             ModpackId = modpackId;
             Iteration = iteration;
-            VersionMods = modpackVersion.VersionMods.Select(v => new VersionModDto(v)).ToList();
+            VersionMods = [.. modpackVersion.VersionMods.Select(v => new VersionModDto(v))];
         }
     }
 }

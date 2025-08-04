@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NuGet.Protocol;
 using Packbuilder.Dto.Create;
+using Packbuilder.Dto.Update;
 using Packbuilder.Interfaces;
 using Packbuilder.Models;
 
@@ -54,7 +55,7 @@ namespace Packbuilder.Controllers.ModpackControllers
 
         [HttpPut("{slug}")]
         [EndpointName("UpdateModpack")]
-        public async Task<ActionResult<Modpack>> UpdateModpack(string userName, string slug, [FromBody] CreateModpackDto body)
+        public async Task<ActionResult<Modpack>> UpdateModpack(string userName, string slug, [FromBody] UpdateModpackDto body)
         {
             Modpack? modpack = await context.Modpacks.Include(m => m.User).SingleOrDefaultAsync(m => m.Slug == slug
             && m.User.Name == userName);
@@ -72,6 +73,7 @@ namespace Packbuilder.Controllers.ModpackControllers
             }
 
             modpack.Name = body.Name;
+            modpack.Avatar = body.Avatar;
 
             context.Modpacks.Update(modpack);
             await context.SaveChangesAsync();
@@ -80,7 +82,7 @@ namespace Packbuilder.Controllers.ModpackControllers
 
         [HttpDelete("{slug}")]
         [EndpointName("DeleteModpack")]
-        public async Task<ActionResult<Modpack>> DeleteModpack(string userName, string slug)
+        public async Task<ActionResult<Modpack>> DeleteModpack([FromRoute] string userName, [FromRoute]string slug)
         {
             Modpack? modpack = await context.Modpacks.Include(m => m.User).SingleOrDefaultAsync(m => m.Slug == slug
             && m.User.Name == userName);
@@ -97,7 +99,7 @@ namespace Packbuilder.Controllers.ModpackControllers
                 return Unauthorized();
             }
 
-            context.RemoveRange(modpack.Versions);
+            context.RemoveRange(modpack);
             await context.SaveChangesAsync();
             return Ok(modpack);
         }

@@ -10,7 +10,7 @@ namespace Packbuilder.Dto.ModpackDtos
   
         public ModpackDto(Modpack modpack)
         {
-            Versions = modpack.Versions.Select(m => new ModpackVersionDto(m, m.Id, 0.1f)).ToList();
+            Versions = [.. modpack.Versions.Select(m => new ModpackVersionDto(m, m.Id, 0.1f))];
         }
     }
 }
