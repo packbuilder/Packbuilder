@@ -46,6 +46,7 @@ namespace Packbuilder.Models
                 {
                     ModId = mod.Id,
                     VersionIteration = latest,
+                    ModpackId = Id,
                     Version = newVersion,
                     Mod = mod
                 };

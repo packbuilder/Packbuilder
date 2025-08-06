@@ -4,7 +4,7 @@ namespace Packbuilder.Dto.Create
 {
     public class CreateModpackVersionDto
     {
-        [JsonPropertyName("modpack")]
+        [JsonPropertyName("modpack_id")]
         public required int ModpackId { get; set; }
         [JsonPropertyName("iteration")]
         public required float Iteration { get; set; }

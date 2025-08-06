@@ -7,17 +7,20 @@ namespace Packbuilder.Services
 {
     public class ModpackVersionService(PackbuilderContext context) : IModpackVersionService
     {
-        public async Task<ModpackVersionDto?> GetCurrentVersion(int modpackId)
+        public async Task<ModpackVersionDto?> GetLatestVersion(int modpackId)
         {
-            ModpackVersion? modpackVersion = await context.Versions.SingleOrDefaultAsync(v => v.ModpackId == modpackId);
+            //This function will get the requested version
+            Modpack? modpack = await context.Modpacks.Include(m => m.Versions.OrderByDescending(v => v.Iteration).Take(1)).SingleOrDefaultAsync(m => m.Id == modpackId);
 
 
-            if (modpackVersion is null)
+            if (modpack is null)
             {
                 return null;
             }
 
-            return new ModpackVersionDto(modpackVersion, modpackId, modpackVersion.Iteration);
+            ModpackVersion latestVersion = modpack.Versions.First();
+
+            return new ModpackVersionDto(latestVersion, modpackId, latestVersion.Iteration);
         }
 
         public async Task<ModpackVersionDto?> FindVersion(int modpackId, float iteration)
@@ -30,11 +33,6 @@ namespace Packbuilder.Services
             }
 
             return new ModpackVersionDto(modpackVersion, modpackId, iteration);
-        }
-
-        public Task<ModpackVersionDto?> UpdateModpackVersion()
-        {
-            return null;
         }
     }
 }
