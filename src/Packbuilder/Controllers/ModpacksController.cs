@@ -54,7 +54,7 @@ namespace Packbuilder.Controllers.ModpackControllers
 
         [HttpPut("{slug}")]
         [EndpointName("UpdateModpack")]
-        public async Task<ActionResult<Modpack>> UpdateModpack(string userName, string slug, [FromBody] UpdateModpackDto body)
+        public async Task<ActionResult<Modpack>> UpdateModpack([FromRoute] string userName, [FromRoute] string slug, [FromBody] UpdateModpackDto body)
         {
             Modpack? modpack = await context.Modpacks.Include(m => m.User).SingleOrDefaultAsync(m => m.Slug == slug
             && m.User.Name == userName);
