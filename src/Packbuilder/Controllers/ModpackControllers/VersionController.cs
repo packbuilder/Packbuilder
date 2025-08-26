@@ -18,25 +18,37 @@ namespace Packbuilder.Controllers.ModpackControllers
 
         [HttpPost]
         [EndpointName("CreateVersion")]
-        public async Task<ActionResult<ModpackVersion>> CreateVersion([FromRoute] string slug)
+        public async Task<ActionResult<ModpackVersion>> CreateVersion([FromRoute] string slug, [FromBody] List<int> modIds)
         {
             Modpack? currentModpack = await context.Modpacks.SingleOrDefaultAsync(m => m.Slug == slug);
             User? currentUser = await sessionService.GetCurrentUser();
+
+            List<Mod> mods = [];
 
             if (currentUser is null || currentModpack is null || currentModpack.UserId != currentUser.Id)
             {
                 return Unauthorized();
             }
 
-            ModpackVersion version = new ModpackVersion()
+            modIds.ForEach(async id =>
             {
-                ModpackId = currentModpack.Id,
-                Iteration = 0.0f,
-                //If this causes a circular reference, use the partial here or omit this
-                Modpack = currentModpack,
-            };
+                Mod? mod = await context.Mods.SingleOrDefaultAsync(m => id == m.Id);
 
-            return Ok(version);
+                if (mod != null)
+                {
+                    mods.Add(mod);
+                }
+            });
+
+            ModpackVersion newVersion = currentModpack.CreateVersion(mods);
+
+            foreach (VersionMod versionMod in newVersion.VersionMods)
+            {
+                context.VersionMods.Add(versionMod);
+            }
+            context.Versions.Add(newVersion);
+            await context.SaveChangesAsync();
+            return Ok(newVersion);
         }
     }
 }

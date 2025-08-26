@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using NuGet.Packaging.Signing;
 using Packbuilder.Dto.Create;
 using Packbuilder.Dto.ModpackDtos;
 using Packbuilder.Interfaces;

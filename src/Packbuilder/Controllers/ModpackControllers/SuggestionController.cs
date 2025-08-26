@@ -4,7 +4,7 @@ using Packbuilder.Dto.Create;
 using Packbuilder.Interfaces;
 using Packbuilder.Models;
 
-namespace Packbuilder.Controllers
+namespace Packbuilder.Controllers.ModpackControllers
 {
     [ApiController]
     [Route("{username}/modpacks/{slug}/suggestions")]
