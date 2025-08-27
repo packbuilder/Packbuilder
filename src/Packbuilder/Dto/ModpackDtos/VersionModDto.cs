@@ -8,7 +8,7 @@ namespace Packbuilder.Dto.ModpackDtos
     public class VersionModDto : VersionModPartialDto
     {
         [JsonProperty("version")]
-        public virtual ModpackVersionDto VersionDto { get; set; } = null!;
+        public virtual VersionDto VersionDto { get; set; } = null!;
         [JsonProperty("mod")]
         public virtual Mod Mod { get; set; } = null!;
 

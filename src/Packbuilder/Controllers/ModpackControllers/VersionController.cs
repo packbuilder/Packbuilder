@@ -1,15 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Packbuilder.Dto.Create;
 using Packbuilder.Dto.ModpackDtos;
 using Packbuilder.Interfaces;
 using Packbuilder.Models;
-using Packbuilder.Services;
 
 namespace Packbuilder.Controllers.ModpackControllers
 {
     [ApiController]
     [Route("{username}/modpacks/{slug}/versions")]
-    public class VersionController(PackbuilderContext context, ISessionService sessionService) : ControllerBase
+    public class VersionController(PackbuilderContext context, ISessionService sessionService, IVersionService versionService) : ControllerBase
     {
         [HttpGet("{versionId}")]
         [EndpointName("GetVersion")]
@@ -22,48 +22,35 @@ namespace Packbuilder.Controllers.ModpackControllers
                 return NotFound();
             }
 
-            ModpackVersionDto versionDto = new(version, version.ModpackId, version.Iteration);
+            VersionDto versionDto = new(version, version.ModpackId, version.Iteration);
 
             return Ok(versionDto);
         }
 
         [HttpPost]
         [EndpointName("CreateVersion")]
-        public async Task<ActionResult<ModpackVersion>> CreateVersion([FromRoute] string slug, [FromBody] List<int> modIds)
+        public async Task<ActionResult<ModpackVersion>> CreateVersion([FromRoute] string slug, [FromBody] CreateVersionDto createVersionDto)
         {
             Modpack? currentModpack = await context.Modpacks.SingleOrDefaultAsync(m => m.Slug == slug);
             User? currentUser = await sessionService.GetCurrentUser();
-
-            List<Mod> mods = [];
 
             if (currentUser is null || currentModpack is null || currentModpack.UserId != currentUser.Id)
             {
                 return Unauthorized();
             }
 
-            modIds.ForEach(async id =>
-            {
-                Mod? mod = await context.Mods.SingleOrDefaultAsync(m => id == m.Id);
-
-                if (mod != null)
-                {
-                    mods.Add(mod);
-                }
-            });
-
-            if (mods.Count == 0)
+            if (createVersionDto.ModIds is null || createVersionDto.ModIds.Count <= 0) 
             {
                 return BadRequest();
             }
 
-            ModpackVersion newVersion = currentModpack.CreateVersion(mods);
+            VersionDto? newVersion = await versionService.CreateVersion(currentModpack.Id, createVersionDto.ModIds);
 
-            foreach (VersionMod versionMod in newVersion.VersionMods)
+            if (newVersion is null)
             {
-                context.VersionMods.Add(versionMod);
+                return NotFound();
             }
-            context.Versions.Add(newVersion);
-            await context.SaveChangesAsync();
+
             return Ok(newVersion);
         }
     }

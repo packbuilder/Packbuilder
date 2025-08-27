@@ -2,9 +2,11 @@ using Newtonsoft.Json;
 
 namespace Packbuilder.Dto.ModpackDtos
 {
-    public class ModpackVersionPartialDto
+    public class VersionPartialDto
     
     {
+        [JsonProperty("id")]
+        public required int Id { get; set; }
         [JsonProperty("modpack_id")]
         public required int ModpackId { get; set; }
         [JsonProperty("iterations")]

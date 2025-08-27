@@ -25,6 +25,7 @@ builder.Services.AddOpenApi();
 // builder.Services.AddIdentityCore<User>();
 builder.Services.AddTransient<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddTransient<ISessionService, SessionService>();
+builder.Services.AddTransient<IVersionService, VersionService>();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddLogging((options) =>

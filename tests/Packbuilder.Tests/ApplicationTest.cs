@@ -39,6 +39,7 @@ namespace Packbuilder.Tests
                 })
                 .AddTransient<IPasswordHasher<User>, PasswordHasher<User>>()
                 .AddTransient<ISessionService, SessionService>()
+                .AddTransient<IVersionService, VersionService>()
                 .AddSingleton<IHttpContextAccessor, HttpContextAccessor>()
                 .AddSingleton<ModpackFactory>()
                 .AddSingleton<ModFactory>()
