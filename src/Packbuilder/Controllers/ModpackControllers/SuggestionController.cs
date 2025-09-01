@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Packbuilder.Dto.Create;
@@ -22,8 +23,9 @@ namespace Packbuilder.Controllers.ModpackControllers
         public async Task<ActionResult<Suggestion>> PostSuggestion([FromBody] CreateSuggestionDto body, [FromRoute] string slug)
         {
             User? currentUser = await sessionService.GetCurrentUser();
+            Modpack? currentModpack = await context.Modpacks.SingleOrDefaultAsync(m => m.Slug == slug);
 
-            if (currentUser is null)
+            if (currentUser is null || currentModpack is null)
             {
                 return Unauthorized();
             }
@@ -32,7 +34,9 @@ namespace Packbuilder.Controllers.ModpackControllers
             {
                 ModpackSlug = slug,
                 Username = currentUser.Name,
-                Memo = body.Memo
+                Memo = body.Memo,
+                Modpack = currentModpack,
+                User = currentUser
             };
 
             context.Suggestions.Add(suggestion);

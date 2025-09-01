@@ -45,6 +45,7 @@ namespace Packbuilder.Tests
                 .AddSingleton<ModFactory>()
                 .AddSingleton<NameFactory>()
                 .AddSingleton<UserFactory>()
+                .AddSingleton<SuggestionFactory>()
                 .AddSingleton<Faker>()
                 .BuildServiceProvider();
 
