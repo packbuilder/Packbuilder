@@ -31,7 +31,7 @@ namespace Packbuilder.Controllers
         [EndpointName("CreateAccount")]
         public async Task<ActionResult<User>> PostUser([FromBody] CreateUserDto body)
         {
-            User user = new User()
+            User user = new()
             {
                 Name = body.Name,
                 Email = body.Email,

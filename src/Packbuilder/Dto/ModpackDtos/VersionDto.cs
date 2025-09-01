@@ -8,7 +8,7 @@ namespace Packbuilder.Dto.ModpackDtos
         public virtual ICollection<VersionModPartialDto> VersionMods { get; set; } = [];
 
         [SetsRequiredMembers]
-        public VersionDto(Models.ModpackVersion modpackVersion, int modpackId, float iteration)
+        public VersionDto(ModpackVersion modpackVersion, int modpackId, float iteration)
         {
             ModpackId = modpackId;
             Iteration = iteration;

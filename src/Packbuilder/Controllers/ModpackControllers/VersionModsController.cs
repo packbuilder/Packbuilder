@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Packbuilder.Dto.ModpackDtos;
 using Packbuilder.Models;
 
 namespace Packbuilder.Controllers.ModpackControllers
@@ -12,7 +13,16 @@ namespace Packbuilder.Controllers.ModpackControllers
         [EndpointName("GetMods")]
         public async Task<ActionResult<List<VersionMod>>> GetVersionMods([FromRoute] int iteration)
         {
-            return Ok(await context.VersionMods.Where(v => v.VersionIteration == iteration).ToListAsync());
+            List<VersionMod> versionMods = await context.VersionMods.Where(v => v.VersionIteration == iteration).ToListAsync();
+
+            if (versionMods is null)
+            {
+                return NotFound();
+            }
+
+            List<VersionModDto> versionModDtos = [.. versionMods.Select(v => new VersionModDto(v))];
+
+            return Ok(versionModDtos);
         }
     }
 }

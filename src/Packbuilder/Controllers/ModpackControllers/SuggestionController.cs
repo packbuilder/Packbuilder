@@ -28,7 +28,7 @@ namespace Packbuilder.Controllers.ModpackControllers
                 return Unauthorized();
             }
 
-            Suggestion suggestion = new Suggestion()
+            Suggestion suggestion = new()
             {
                 ModpackSlug = slug,
                 Username = currentUser.Name,

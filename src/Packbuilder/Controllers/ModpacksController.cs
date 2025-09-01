@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Packbuilder.Dto.Create;
+using Packbuilder.Dto.ModpackDtos;
 using Packbuilder.Dto.Update;
 using Packbuilder.Interfaces;
 using Packbuilder.Models;
@@ -25,7 +26,14 @@ namespace Packbuilder.Controllers.ModpackControllers
                 return NotFound();
             }
 
-            return Ok(modpack);
+            ModpackDto modpackDto = new(modpack)
+            {
+                Name = modpack.Name,
+                Slug = modpack.Slug,
+                UserId = modpack.UserId
+            };
+
+            return Ok(modpackDto);
         }
 
         [HttpPost]
@@ -39,7 +47,7 @@ namespace Packbuilder.Controllers.ModpackControllers
                 return Unauthorized();
             }
 
-            Modpack modpack = new Modpack()
+            Modpack modpack = new()
             {
                 Name = body.Name,
                 UserId = currentUser.Id,
@@ -47,9 +55,16 @@ namespace Packbuilder.Controllers.ModpackControllers
                 Avatar = "Use generic avatar link or something"
             };
 
+            ModpackDto modpackDto = new(modpack)
+            {
+                Name = body.Name,
+                UserId = currentUser.Id,
+                Slug = Modpack.GenerateSlug(currentUser.Name)
+            };
+
             context.Modpacks.Add(modpack);
             await context.SaveChangesAsync();
-            return Ok(modpack);
+            return Ok(modpackDto);
         }
 
         [HttpPut("{slug}")]
@@ -74,9 +89,16 @@ namespace Packbuilder.Controllers.ModpackControllers
             modpack.Name = body.Name;
             modpack.Avatar = body.Avatar;
 
+            ModpackDto modpackDto = new(modpack)
+            {
+                Name = modpack.Name,
+                Slug = modpack.Slug,
+                UserId = modpack.UserId
+            };
+
             context.Modpacks.Update(modpack);
             await context.SaveChangesAsync();
-            return Ok(modpack);
+            return Ok(modpackDto);
         }
 
         [HttpDelete("{slug}")]
@@ -98,9 +120,16 @@ namespace Packbuilder.Controllers.ModpackControllers
                 return Unauthorized();
             }
 
+            ModpackDto modpackDto = new(modpack)
+            {
+                Name = modpack.Name,
+                Slug = modpack.Slug,
+                UserId = modpack.UserId
+            };
+
             context.RemoveRange(modpack);
             await context.SaveChangesAsync();
-            return Ok(modpack);
+            return Ok(modpackDto);
         }
     }
 }
