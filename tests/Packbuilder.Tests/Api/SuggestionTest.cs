@@ -70,68 +70,71 @@ public class SuggestionTest : ApplicationTests
 
         Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
     }
-    // [TestMethod]
-    // public async Task UpdateSuggestionsTest()
-    // {
-    //     var context = Services.GetRequiredService<PackbuilderContext>();
-    //     var modpackFactory = Services.GetRequiredService<ModpackFactory>();
-    //     var userFactory = Services.GetRequiredService<UserFactory>();
-    //     Faker faker = new();
+    [TestMethod]
+    public async Task UpdateSuggestionsTest()
+    {
+        var context = Services.GetRequiredService<PackbuilderContext>();
+        var modpackFactory = Services.GetRequiredService<ModpackFactory>();
+        var userFactory = Services.GetRequiredService<UserFactory>();
+        var suggestionFactory = Services.GetRequiredService<SuggestionFactory>();
+        Faker faker = new();
 
-    //     (User user, string password) = userFactory.CreateUser();
-    //     Modpack modpack = modpackFactory.CreateModpack(user);
+        (User user, string password) = userFactory.CreateUser();
+        Modpack modpack = modpackFactory.CreateModpack(user);
+        Suggestion suggestion = suggestionFactory.CreateSuggestion(user, modpack);
 
-    //     modpack.Slug = Modpack.GenerateSlug(modpack.Name);
+        modpack.Slug = Modpack.GenerateSlug(modpack.Name);
 
-    //     context.Users.Add(user);
-    //     context.Modpacks.Add(modpack);
-    //     await context.SaveChangesAsync();
+        context.Users.Add(user);
+        context.Modpacks.Add(modpack);
+        context.Suggestions.Add(suggestion);
+        await context.SaveChangesAsync();
 
-    //     UpdateModpackDto updateModpackDto = new UpdateModpackDto
-    //     {
-    //         Name = faker.Name.FirstName(),
-    //         Avatar = faker.Internet.Avatar(),
-    //     };
+        CreateSuggestionDto updateSuggestionDto = new()
+        {
+            Memo = faker.Lorem.Paragraph()
+        };
 
-    //     JsonContent data = JsonContent.Create(updateModpackDto);
+        JsonContent data = JsonContent.Create(updateSuggestionDto);
 
-    //     HttpClient client = await CreateSessionClient(user, password);
-    //     HttpResponseMessage res = await client.PutAsync($"{user.Name}/modpacks/{modpack.Slug}", data);
+        HttpClient client = await CreateSessionClient(user, password);
+        HttpResponseMessage res = await client.PutAsync($"{user.Name}/modpacks/{modpack.Slug}/suggestions/update", data);
 
-    //     var scope = Services.CreateScope();
-    //     var secondContext = scope.ServiceProvider.GetRequiredService<PackbuilderContext>();
-    //     Modpack? updatedModpack = await secondContext.Modpacks.SingleOrDefaultAsync(m => m.Id == modpack.Id);
+        var scope = Services.CreateScope();
+        var secondContext = scope.ServiceProvider.GetRequiredService<PackbuilderContext>();
+        Suggestion? updatedSuggestion = await secondContext.Suggestions.SingleOrDefaultAsync(m => m.Id == modpack.Id);
 
-    //     Assert.IsNotNull(updatedModpack);
-    //     Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
-    //     Assert.AreNotEqual(modpack.Name, updatedModpack.Name);
-    //     Assert.AreNotEqual(modpack.Avatar, updatedModpack.Avatar);
-    // }
-    // [TestMethod]
-    // public async Task DeleteSuggestionsTest()
-    // {
-    //     var context = Services.GetRequiredService<PackbuilderContext>();
-    //     var modpackFactory = Services.GetRequiredService<ModpackFactory>();
-    //     var userFactory = Services.GetRequiredService<UserFactory>();
+        Assert.IsNotNull(updatedSuggestion);
+        Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
+        Assert.AreNotEqual(suggestion.Memo, updatedSuggestion.Memo);
+    }
+    [TestMethod]
+    public async Task DeleteSuggestionsTest()
+    {
+        var context = Services.GetRequiredService<PackbuilderContext>();
+        var modpackFactory = Services.GetRequiredService<ModpackFactory>();
+        var userFactory = Services.GetRequiredService<UserFactory>();
+        var suggestionFactory = Services.GetRequiredService<SuggestionFactory>();
 
-    //     (User user, string password) = userFactory.CreateUser();
-    //     Modpack modpack = modpackFactory.CreateModpack(user);
+        (User user, string password) = userFactory.CreateUser();
+        Modpack modpack = modpackFactory.CreateModpack(user);
+        Suggestion suggestion = suggestionFactory.CreateSuggestion(user, modpack);
 
-    //     modpack.Slug = Modpack.GenerateSlug(modpack.Name);
+        modpack.Slug = Modpack.GenerateSlug(modpack.Name);
 
-    //     context.Users.Add(user);
-    //     context.Modpacks.Add(modpack);
-    //     await context.SaveChangesAsync();
+        context.Users.Add(user);
+        context.Modpacks.Add(modpack);
+        context.Suggestions.Add(suggestion);
+        await context.SaveChangesAsync();
 
-    //     HttpClient client = await CreateSessionClient(user, password);
-    //     HttpResponseMessage res = await client.DeleteAsync($"{user.Name}/modpacks/{modpack.Slug}");
+        HttpClient client = await CreateSessionClient(user, password);
+        HttpResponseMessage res = await client.DeleteAsync($"{user.Name}/modpacks/{modpack.Slug}/suggestions/delete");
 
+        var scope = Services.CreateScope();
+        var secondContext = scope.ServiceProvider.GetRequiredService<PackbuilderContext>();
+        Suggestion? deletedSuggestion = await secondContext.Suggestions.SingleOrDefaultAsync(s => s.Id == suggestion.Id);
 
-    //     var scope = Services.CreateScope();
-    //     var secondContext = scope.ServiceProvider.GetRequiredService<PackbuilderContext>();
-    //     Modpack? deletedModpack = await secondContext.Modpacks.SingleOrDefaultAsync(m => m.Id == modpack.Id);
-
-    //     Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
-    //     Assert.IsNull(deletedModpack);
-    // }    
+        Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
+        Assert.IsNull(deletedSuggestion);
+    }    
 }

@@ -44,7 +44,7 @@ namespace Packbuilder.Controllers.ModpackControllers
             return Ok(suggestion);
         }
 
-        [HttpPut]
+        [HttpPut("update")]
         [Route("UpdateSuggestion")]
         public async Task<ActionResult<Suggestion>> UpdateSuggestion([FromBody] CreateSuggestionDto body, [FromRoute] string slug)
         {
@@ -55,8 +55,7 @@ namespace Packbuilder.Controllers.ModpackControllers
                 return Unauthorized();
             }
 
-            Suggestion? suggestion = await context.Suggestions.Include(s => s.User).Include(s => s.Modpack)
-                .SingleOrDefaultAsync(s => s.ModpackSlug == slug && s.User.Name == currentUser.Name);
+            Suggestion? suggestion = await context.Suggestions.Include(s => s.User).Include(s => s.Modpack).SingleOrDefaultAsync(s => s.ModpackSlug == slug && s.User.Name == currentUser.Name);
 
             if (suggestion is null)
             {
@@ -65,12 +64,12 @@ namespace Packbuilder.Controllers.ModpackControllers
 
             suggestion.Memo = body.Memo;
 
-            context.Suggestions.Add(suggestion);
+            context.Suggestions.Update(suggestion);
             await context.SaveChangesAsync();
             return Ok(suggestion);
         }
 
-        [HttpDelete]
+        [HttpDelete("delete")]
         [Route("DeleteSuggestion")]
         public async Task<ActionResult<Suggestion>> DeleteSuggestion([FromRoute] string slug)
         {
