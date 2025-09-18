@@ -45,7 +45,7 @@ namespace Packbuilder.Controllers.ModpackControllers
         }
 
         [HttpPut("{id:int}")]
-        [Route("UpdateSuggestion")]
+        [EndpointName("UpdateSuggestion")]
         public async Task<ActionResult<Suggestion>> UpdateSuggestion([FromRoute] int id, [FromBody] CreateSuggestionDto body)
         {
             User? currentUser = await sessionService.GetCurrentUser();
@@ -70,7 +70,7 @@ namespace Packbuilder.Controllers.ModpackControllers
         }
 
         [HttpDelete("{id:int}")]
-        [Route("DeleteSuggestion")]
+        [EndpointName("DeleteSuggestion")]
         public async Task<ActionResult<Suggestion>> DeleteSuggestion([FromRoute] int id)
         {
             User? currentUser = await sessionService.GetCurrentUser();
