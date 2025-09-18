@@ -44,9 +44,9 @@ namespace Packbuilder.Controllers.ModpackControllers
             return Ok(suggestion);
         }
 
-        [HttpPut("update")]
+        [HttpPut("{id:int}")]
         [Route("UpdateSuggestion")]
-        public async Task<ActionResult<Suggestion>> UpdateSuggestion([FromBody] CreateSuggestionDto body, [FromRoute] string slug)
+        public async Task<ActionResult<Suggestion>> UpdateSuggestion([FromRoute] int id, [FromBody] CreateSuggestionDto body)
         {
             User? currentUser = await sessionService.GetCurrentUser();
 
@@ -55,7 +55,7 @@ namespace Packbuilder.Controllers.ModpackControllers
                 return Unauthorized();
             }
 
-            Suggestion? suggestion = await context.Suggestions.Include(s => s.User).Include(s => s.Modpack).SingleOrDefaultAsync(s => s.ModpackSlug == slug && s.User.Name == currentUser.Name);
+            Suggestion? suggestion = await context.Suggestions.Include(s => s.User).Include(s => s.Modpack).SingleOrDefaultAsync(s => s.Id == id);
 
             if (suggestion is null)
             {
@@ -69,9 +69,9 @@ namespace Packbuilder.Controllers.ModpackControllers
             return Ok(suggestion);
         }
 
-        [HttpDelete("delete")]
+        [HttpDelete("{id:int}")]
         [Route("DeleteSuggestion")]
-        public async Task<ActionResult<Suggestion>> DeleteSuggestion([FromRoute] string slug)
+        public async Task<ActionResult<Suggestion>> DeleteSuggestion([FromRoute] int id)
         {
             User? currentUser = await sessionService.GetCurrentUser();
 
@@ -81,7 +81,7 @@ namespace Packbuilder.Controllers.ModpackControllers
             }
 
             Suggestion? suggestion = await context.Suggestions.Include(s => s.User).Include(s => s.Modpack)
-                .SingleOrDefaultAsync(s => s.ModpackSlug == slug && s.User.Name == currentUser.Name);
+                .SingleOrDefaultAsync(s => s.Id == id);
 
             if (suggestion is null)
             {

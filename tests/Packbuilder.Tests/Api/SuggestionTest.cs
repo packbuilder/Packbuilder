@@ -98,7 +98,7 @@ public class SuggestionTest : ApplicationTests
         JsonContent data = JsonContent.Create(updateSuggestionDto);
 
         HttpClient client = await CreateSessionClient(user, password);
-        HttpResponseMessage res = await client.PutAsync($"{user.Name}/modpacks/{modpack.Slug}/suggestions/update", data);
+        HttpResponseMessage res = await client.PutAsync($"{user.Name}/modpacks/{modpack.Slug}/suggestions/{suggestion.Id}", data);
 
         var scope = Services.CreateScope();
         var secondContext = scope.ServiceProvider.GetRequiredService<PackbuilderContext>();
@@ -128,7 +128,7 @@ public class SuggestionTest : ApplicationTests
         await context.SaveChangesAsync();
 
         HttpClient client = await CreateSessionClient(user, password);
-        HttpResponseMessage res = await client.DeleteAsync($"{user.Name}/modpacks/{modpack.Slug}/suggestions/delete");
+        HttpResponseMessage res = await client.DeleteAsync($"{user.Name}/modpacks/{modpack.Slug}/suggestions/{suggestion.Id}");
 
         var scope = Services.CreateScope();
         var secondContext = scope.ServiceProvider.GetRequiredService<PackbuilderContext>();

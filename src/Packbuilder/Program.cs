@@ -17,6 +17,8 @@ var builder = WebApplication.CreateBuilder(args);
 #region Services
 DotEnv.Load();
 builder.Configuration.AddEnvironmentVariables();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -69,7 +71,10 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-} else 
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+else
 {
     app.UseHttpsRedirection();
 }
