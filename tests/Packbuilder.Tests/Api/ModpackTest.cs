@@ -10,23 +10,6 @@ using Packbuilder.Tests.Factories;
 
 namespace Packbuilder.Tests.Api;
 
-//TODO: Try to create and update the new modpack with it's new versions. to do this, consider how the data will be stored within the data base and how your dtos that you created reflect that data transfer/storage. 
-
-//TODO: Handle and read data using the new dtos you created in order to check if versions and iterations are working within your project
-
-//TODO: Use asserts to check
-
-// List<Mod> mods = [];
-// float latest = 0.0f;
-
-// for (int i = 0; i < 3; i++)
-// {
-//     Mod newMod = modFactory.CreateMod();
-//     mods.Add(newMod);
-//     modpack.CreateVersion(mods);
-//     latest += .1f;
-// }
-
 [TestClass]
 public class ModpackTest : ApplicationTests
 {
