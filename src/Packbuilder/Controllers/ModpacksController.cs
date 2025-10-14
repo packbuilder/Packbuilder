@@ -6,7 +6,7 @@ using Packbuilder.Dto.Update;
 using Packbuilder.Interfaces;
 using Packbuilder.Models;
 
-namespace Packbuilder.Controllers.ModpackControllers
+namespace Packbuilder.Controllers
 {
     [ApiController]
     [Route("{username}/modpacks")]
