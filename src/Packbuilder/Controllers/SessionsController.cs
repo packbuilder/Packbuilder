@@ -12,6 +12,7 @@ namespace Packbuilder.Controllers
     public class SessionsController(ISessionService sessionService) : ControllerBase
     {
         [HttpPost]
+        [EndpointName("Login")]
         public async Task<ActionResult<string>> Create(CreateSessionDto sessionDto)
         {
             try

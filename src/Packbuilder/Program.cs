@@ -9,6 +9,7 @@ using Packbuilder.Services;
 using dotenv.net;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Packbuilder.Data;
 
 [assembly: InternalsVisibleTo("Packbuilder.Tests")]
 
@@ -61,7 +62,25 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddDbContext<PackbuilderContext>(opt =>
 {
     DbOptions options = builder.Configuration.GetSection("DB").Get<DbOptions>()!;
+    PasswordHasher<User> passwordHasher = new();
     opt.UseNpgsql(options.ConnectionString);
+    opt.UseAsyncSeeding(async (context, _, _) =>
+    {
+        SeedService seedService = new((context as PackbuilderContext)!, passwordHasher);
+        if (builder.Environment.IsDevelopment() && !await context.Set<User>().AnyAsync())
+        {
+            await seedService.Seed();
+        }
+    });
+
+    opt.UseSeeding((context, _) =>
+    {
+        SeedService seedService = new((context as PackbuilderContext)!, passwordHasher);
+        if (builder.Environment.IsDevelopment() && !context.Set<User>().Any())
+        {
+            seedService.Seed().GetAwaiter().GetResult();
+        }
+    });
 });
 #endregion
 
