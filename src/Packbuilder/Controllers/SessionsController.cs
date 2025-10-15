@@ -7,7 +7,6 @@ using Packbuilder.Dto.Create;
 namespace Packbuilder.Controllers
 {
     [ApiController]
-    [Authorize]
     [Route("sessions")]
     public class SessionsController(ISessionService sessionService) : ControllerBase
     {
