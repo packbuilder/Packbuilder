@@ -52,7 +52,7 @@ namespace Packbuilder.Services
             {
                 new Claim(ClaimTypes.Name, user.Name),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim("Picture", user.Avatar),
+                new Claim(ClaimTypes.Email, user.Email),
                 new Claim("UpdatedAt", user.UpdatedAt.ToString("o")),
                 new Claim("CreatedAt", user.CreatedAt.ToString("o"))
             };
