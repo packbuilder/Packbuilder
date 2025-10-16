@@ -98,6 +98,14 @@ else
     app.UseHttpsRedirection();
 }
 
+app.UseCors(opt =>
+{
+    opt.WithOrigins("http://localhost:5173")
+       .AllowAnyMethod()
+       .AllowAnyHeader()
+       .AllowCredentials();
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

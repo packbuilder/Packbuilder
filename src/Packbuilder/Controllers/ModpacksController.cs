@@ -12,6 +12,28 @@ namespace Packbuilder.Controllers
     [Route("{username}/modpacks")]
     public class ModpacksController(PackbuilderContext context, ISessionService sessionService) : ControllerBase
     {
+        [HttpGet]
+        [EndpointName("GetAllModpacks")]
+        public async Task<ActionResult<Modpack[]>> GetAllModpacks()
+        {
+            User? curUser = await sessionService.GetCurrentUser();
+
+            if(curUser is null)
+            {
+                return Unauthorized();
+            }
+
+            Modpack[]? modpacks = await context.Modpacks.Where(m => m.UserId == curUser.Id)
+                .Include(m => m.Versions.OrderByDescending(v => v.Iteration).Take(1)).ToArrayAsync();
+
+            if (modpacks is null)
+            {
+                return NotFound();
+            }
+
+            return Ok(modpacks);
+        }
+
         [HttpGet("{slug}")]
         [EndpointName("GetModpack")]
         public async Task<ActionResult<Modpack>> GetModpack([FromRoute] string slug)

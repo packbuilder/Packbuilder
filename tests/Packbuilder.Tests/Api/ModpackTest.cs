@@ -20,6 +20,28 @@ public class ModpackTest : ApplicationTests
     }
 
     [TestMethod]
+    public async Task GetAllModpacksTest()
+    {
+        var context = Services.GetRequiredService<PackbuilderContext>();
+        var modpackFactory = Services.GetRequiredService<ModpackFactory>();
+        var userFactory = Services.GetRequiredService<UserFactory>();
+
+        (User user, string password) = userFactory.CreateUser();
+        Modpack modpack = modpackFactory.CreateModpack(user);
+
+        modpack.Slug = Modpack.GenerateSlug(modpack.Name);
+
+        context.Users.Add(user);
+        context.Modpacks.Add(modpack);
+        await context.SaveChangesAsync();
+
+        HttpClient client = await CreateSessionClient(user, password);
+        HttpResponseMessage res = await client.GetAsync($"{user.Name}/modpacks");
+
+        Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
+    }
+
+    [TestMethod]
     public async Task GetModpackTest()
     {
         var context = Services.GetRequiredService<PackbuilderContext>();
