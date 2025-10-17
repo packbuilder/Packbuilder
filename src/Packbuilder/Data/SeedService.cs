@@ -11,7 +11,7 @@ public class SeedService(PackbuilderContext db, IPasswordHasher<User> passwordHa
         {
             Name = "Goob",
             Email = "balls@poopmail.com",
-            Avatar = Encode(await File.ReadAllBytesAsync("Data/Seed/Seed-Avatar.jpg"), "jpg"),
+            Avatar = "../Seed-Avatar.jpg",
         };
 
         user.SetPassword(passwordHasher, "password");
@@ -19,7 +19,7 @@ public class SeedService(PackbuilderContext db, IPasswordHasher<User> passwordHa
         Modpack modpack = new()
         {
             Name = "The Woah",
-            Avatar = Encode(await File.ReadAllBytesAsync("Data/Seed/modpack.gif"), "gif"),
+            Avatar = "../modpack.gif",
             Slug = Modpack.GenerateSlug("The Woah"),
             UserId = user.Id,
             User = user
