@@ -35,7 +35,7 @@ public class VersionModTest() : ApplicationTests
         {
             Mod newMod = modFactory.CreateMod();
             mods.Add(newMod);
-            ModpackVersion version = modpack.CreateVersion(mods);
+            ModpackVersion version = modpack.CreateVersion(mods, modpack);
 
             foreach (VersionMod versionMod in version.VersionMods)
             {

@@ -20,7 +20,7 @@ namespace Packbuilder.Models
 
         public User User { get; set; } = null!;
 
-        public ModpackVersion CreateVersion(List<Mod> mods)
+        public ModpackVersion CreateVersion(List<Mod> mods, Modpack curModpack)
         {
             float latest = 0.0f;
             foreach (ModpackVersion modpackVersion in Versions)
@@ -31,21 +31,21 @@ namespace Packbuilder.Models
                 }
             }
 
-            ModpackVersion newVersion = new ModpackVersion
+            ModpackVersion newVersion = new()
             {
                 ModpackId = Id,
                 Iteration = latest + .1f,
-                Modpack = this,
+                Modpack = curModpack,
                 VersionMods = []
             };
 
             foreach (Mod mod in mods)
             {
-                VersionMod versionMod = new VersionMod
+                VersionMod versionMod = new()
                 {
                     ModId = mod.Id,
-                    VersionIteration = latest,
-                    ModpackId = Id,
+                    VersionIteration = latest + .1f,
+                    ModpackId = curModpack.Id,
                     Version = newVersion,
                     Mod = mod
                 };

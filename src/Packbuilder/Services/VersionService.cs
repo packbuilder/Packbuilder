@@ -55,7 +55,7 @@ namespace Packbuilder.Services
                 }
             }
 
-            ModpackVersion newVersion = currentModpack.CreateVersion(mods);
+            ModpackVersion newVersion = currentModpack.CreateVersion(mods, currentModpack);
 
             foreach (VersionMod versionMod in newVersion.VersionMods)
             {

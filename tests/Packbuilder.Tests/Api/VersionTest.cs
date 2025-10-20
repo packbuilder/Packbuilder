@@ -40,7 +40,7 @@ public class VersionTest() : ApplicationTests
         {
             Mod newMod = modFactory.CreateMod();
             mods.Add(newMod);
-            ModpackVersion version = modpack.CreateVersion(mods);
+            ModpackVersion version = modpack.CreateVersion(mods, modpack);
             context.Versions.Add(version);
             context.Mods.Add(newMod);
         }
