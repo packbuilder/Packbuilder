@@ -41,7 +41,7 @@ public class SeedService(PackbuilderContext db, IPasswordHasher<User> passwordHa
 
         List<Mod> mods = [mod1, mod2];
 
-        ModpackVersion version = modpack.CreateVersion(mods, modpack);
+        ModpackVersion version = modpack.CreateVersion(mods);
 
         db.Users.Add(user);
         db.Modpacks.Add(modpack);

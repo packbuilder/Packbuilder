@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Packbuilder.Models;
@@ -11,9 +12,11 @@ using Packbuilder.Models;
 namespace Packbuilder.Migrations
 {
     [DbContext(typeof(PackbuilderContext))]
-    partial class PackbuilderContextModelSnapshot : ModelSnapshot
+    [Migration("20251020185204_FixedModpackCreateVersionBug")]
+    partial class FixedModpackCreateVersionBug
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -292,8 +295,6 @@ namespace Packbuilder.Migrations
 
                     b.HasIndex("ModId");
 
-                    b.HasIndex("ModpackId");
-
                     b.HasIndex("VersionId");
 
                     b.ToTable("version_mods");
@@ -367,12 +368,6 @@ namespace Packbuilder.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Packbuilder.Models.Modpack", "Modpack")
-                        .WithMany()
-                        .HasForeignKey("ModpackId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Packbuilder.Models.ModpackVersion", "Version")
                         .WithMany("VersionMods")
                         .HasForeignKey("VersionId")
@@ -380,8 +375,6 @@ namespace Packbuilder.Migrations
                         .IsRequired();
 
                     b.Navigation("Mod");
-
-                    b.Navigation("Modpack");
 
                     b.Navigation("Version");
                 });
