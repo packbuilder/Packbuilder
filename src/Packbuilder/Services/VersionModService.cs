@@ -19,7 +19,7 @@ namespace Packbuilder.Services
 
         public async Task<VersionMod> CreateVersionMod(CreateVersionModDto data)
         {
-            VersionMod versionMod = new VersionMod()
+            VersionMod versionMod = new()
             {
                 ModId = data.ModId,
                 ModpackId = data.ModpackId,

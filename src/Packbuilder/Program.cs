@@ -10,6 +10,7 @@ using dotenv.net;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Packbuilder.Data;
+using Azure.Core;
 
 [assembly: InternalsVisibleTo("Packbuilder.Tests")]
 
@@ -82,6 +83,27 @@ builder.Services.AddDbContext<PackbuilderContext>(opt =>
         }
     });
 });
+builder.Services.AddHttpClient<ICurseForgeApiService, CurseForgeApiService>(
+    client =>
+    {
+        string? baseUrl = builder.Configuration["CurseForgeApi:BaseUrl"];
+        string? apiKey = Environment.GetEnvironmentVariable("CURSEFORGE_API_KEY");
+
+        if (baseUrl is null)
+        {
+            throw new InvalidOperationException("CurseForgeApi:BaseUrl configuration not found in appsettings.json");
+        }
+        
+        if(apiKey is null)
+        {
+            throw new InvalidOperationException("Curseforge api key not set in environment variable");
+        }
+
+        client.BaseAddress = new Uri(baseUrl);
+        client.DefaultRequestHeaders.Add("x-api-key", apiKey);
+        client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+    }
+);
 #endregion
 
 var app = builder.Build();
