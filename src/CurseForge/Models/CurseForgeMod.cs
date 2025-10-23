@@ -1,6 +1,6 @@
-namespace CurseForge.Dtos;
+namespace CurseForge.Models;
 
-public class CurseForgeModDto
+public class CurseForgeMod
 {
     public required int ReferenceId { get; set; }
     public required string Name { get; set; }
