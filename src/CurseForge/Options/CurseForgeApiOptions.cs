@@ -1,6 +1,7 @@
 namespace CurseForge.Options;
 
-public record CurseForgeApiOptions
+public sealed record CurseForgeApiOptions
 {
-    
+    public required string BaseUrl { get; init; }
+    public required string ApiKey { get; init; }
 }

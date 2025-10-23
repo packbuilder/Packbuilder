@@ -1,12 +1,12 @@
+using CurseForge.Dtos;
+using CurseForge.Services;
 using Microsoft.AspNetCore.Mvc;
-using Packbuilder.Interfaces;
-using Packbuilder.Dto.CurseForgeDtos;
 
 namespace Packbuilder.Controllers
 {
     [ApiController]
     [Route("curseforge")]
-    public class CurseForgeApiController(ICurseForgeApiService curseForgeApiService) : ControllerBase
+    public class CurseForgeApiController(CurseForgeApiService curseForgeApiService) : ControllerBase
     {
         [HttpGet("{referenceId}")]
         [EndpointName("GetMod")]

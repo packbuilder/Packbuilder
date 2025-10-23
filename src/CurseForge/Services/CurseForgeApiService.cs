@@ -1,14 +1,24 @@
 using System.Net.Http.Json;
 using CurseForge.Dtos;
 using CurseForge.Models;
+using CurseForge.Options;
 
 namespace CurseForge.Services;
 
-public class CurseForgeApiService(HttpClient httpClient)
+public class CurseForgeApiService
 {
+    private readonly HttpClient _httpClient = new();
+    
+    public CurseForgeApiService(CurseForgeApiOptions options)
+    {
+        _httpClient.BaseAddress = new Uri(options.BaseUrl);
+        _httpClient.DefaultRequestHeaders.Add("x-api-key", options.ApiKey);
+        _httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+    }
+    
     public async Task<CurseForgeModListDto?> SearchModsAsync(string searchQuery, int gameId)
     {
-        CurseForgeModListResponse? response = await httpClient
+        CurseForgeModListResponse? response = await _httpClient
             .GetFromJsonAsync<CurseForgeModListResponse>($"/v1/mods/search?gameId={gameId}&searchFilter={searchQuery}");
 
         if (response?.Data is null)
@@ -32,7 +42,7 @@ public class CurseForgeApiService(HttpClient httpClient)
 
     public async Task<CurseForgeModDto?> GetModAsync(string referenceId)
     {
-        CurseForgeModResponse? response = await httpClient
+        CurseForgeModResponse? response = await _httpClient
             .GetFromJsonAsync<CurseForgeModResponse>($"/v1/mods/{referenceId}");
 
         if (response?.Data is null)
