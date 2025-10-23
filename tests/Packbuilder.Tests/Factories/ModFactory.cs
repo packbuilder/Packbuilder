@@ -1,6 +1,5 @@
 using Bogus;
 using Packbuilder.Models;
-using Packbuilder.Models.enums;
 
 namespace Packbuilder.Tests.Factories;
 

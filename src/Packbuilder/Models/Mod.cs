@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations.Schema;
-using Packbuilder.Models.enums;
 
 namespace Packbuilder.Models
 {
@@ -7,7 +6,7 @@ namespace Packbuilder.Models
     public class Mod : ModelBase
     {
         [Column("platform")]
-        public required ModPlatform Platform { get; set; }
+        public required Platform Platform { get; set; }
         [Column("reference_id")]
         public required string ReferenceId { get; set; }
     }

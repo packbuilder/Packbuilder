@@ -1,4 +1,4 @@
-namespace Packbuilder.Models.enums
+namespace Packbuilder.Models
 {
     public enum ModAction
     {

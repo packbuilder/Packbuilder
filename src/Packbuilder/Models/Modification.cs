@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations.Schema;
-using Packbuilder.Models.enums;
 
 namespace Packbuilder.Models
 {

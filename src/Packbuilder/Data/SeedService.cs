@@ -1,7 +1,6 @@
 using System.Data;
 using Microsoft.AspNetCore.Identity;
 using Packbuilder.Models;
-using Packbuilder.Models.enums;
 
 namespace Packbuilder.Data;
 
@@ -29,13 +28,13 @@ public class SeedService(PackbuilderContext db, IPasswordHasher<User> passwordHa
 
         Mod mod1 = new()
         {
-            Platform = ModPlatform.CurseForge,
+            Platform = Platform.CurseForge,
             ReferenceId = "238222"
         };
 
         Mod mod2 = new()
         {
-            Platform = ModPlatform.CurseForge,
+            Platform = Platform.CurseForge,
             ReferenceId = "348521"
         };
 

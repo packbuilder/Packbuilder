@@ -1,6 +1,6 @@
-namespace Packbuilder.Models.enums
+namespace Packbuilder.Models
 {
-    public enum ModPlatform
+    public enum Platform
     {
         Thunderstore,
         CurseForge
