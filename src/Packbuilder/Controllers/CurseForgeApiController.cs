@@ -1,18 +1,19 @@
-using CurseForge.Dtos;
 using CurseForge.Services;
+using CurseForge.Interfaces;
+using CurseForge.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Packbuilder.Controllers
 {
     [ApiController]
     [Route("curseforge")]
-    public class CurseForgeApiController(CurseForgeApiService curseForgeApiService) : ControllerBase
+    public class CurseForgeApiController(ICurseForgeApiService curseForgeApiService) : ControllerBase
     {
         [HttpGet("{referenceId}")]
         [EndpointName("GetMod")]
-        public async Task<ActionResult<CurseForgeModDto>> GetMod([FromRoute] int referenceId)
+        public async Task<ActionResult<CurseForgeMod>> GetMod([FromRoute] int referenceId)
         {
-            CurseForgeModDto? data = await curseForgeApiService.GetModAsync(referenceId.ToString());
+            CurseForgeMod? data = await curseForgeApiService.GetModAsync(referenceId.ToString());
 
             if (data is null)
             {
@@ -25,9 +26,9 @@ namespace Packbuilder.Controllers
         // TODO: This endpoint should also handle pagination query params based off curseforges pagination usage/implementation in order to fetch related data.
         [HttpGet("{gameId}/{searchQuery}")]
         [EndpointName("SearchMods")]
-        public async Task<ActionResult<CurseForgeModListDto?>> SearchMods([FromRoute] int gameId, [FromRoute] string searchQuery)
+        public async Task<ActionResult<CurseForgeModList?>> SearchMods([FromRoute] int gameId, [FromRoute] string searchQuery)
         {
-            CurseForgeModListDto? data = await curseForgeApiService.SearchModsAsync(searchQuery, gameId);
+            CurseForgeModList? data = await curseForgeApiService.SearchModsAsync(searchQuery, gameId);
 
             if (data is null)
             {
@@ -37,5 +38,5 @@ namespace Packbuilder.Controllers
             return Ok(data);
         }
     }
-    
+
 }

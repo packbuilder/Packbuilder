@@ -12,6 +12,7 @@ using System.Text;
 using Packbuilder.Data;
 using Azure.Core;
 using CurseForge.Options;
+using CurseForge.Interfaces;
 using CurseForge.Services;
 
 [assembly: InternalsVisibleTo("Packbuilder.Tests")]
@@ -85,7 +86,7 @@ builder.Services.AddDbContext<PackbuilderContext>(opt =>
         }
     });
 });
-builder.Services.AddScoped<CurseForgeApiService>(
+builder.Services.AddScoped<ICurseForgeApiService, CurseForgeApiService>(
     _ =>
     {
         CurseForgeApiOptions options = builder.Configuration.GetSection("CurseForgeApi").Get<CurseForgeApiOptions>()!;
