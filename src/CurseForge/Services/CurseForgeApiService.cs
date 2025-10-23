@@ -11,7 +11,7 @@ public class CurseForgeApiService(HttpClient httpClient)
         CurseForgeModListResponse? response = await httpClient
             .GetFromJsonAsync<CurseForgeModListResponse>($"/v1/mods/search?gameId={gameId}&searchFilter={searchQuery}");
 
-        if (response is null || response.Data is null)
+        if (response?.Data is null)
         {
             return null;
         }
@@ -35,7 +35,7 @@ public class CurseForgeApiService(HttpClient httpClient)
         CurseForgeModResponse? response = await httpClient
             .GetFromJsonAsync<CurseForgeModResponse>($"/v1/mods/{referenceId}");
 
-        if (response is null || response.Data is null)
+        if (response?.Data is null)
         {
             return null;
         }

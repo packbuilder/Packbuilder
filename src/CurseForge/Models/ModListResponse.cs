@@ -1,10 +1,12 @@
+using System.Text.Json.Serialization;
+
 namespace CurseForge.Models
 {    
     public class CurseForgeModListResponse
     {
-        [JsonProperty("data")]
+        [JsonPropertyName("data")]
         public List<CurseForgeModSummary>? Data { get; set; }
-        [JsonProperty("pagination")]
+        [JsonPropertyName("pagination")]
         public required CurseForgePagination Pagination { get; set; }
     }
 }

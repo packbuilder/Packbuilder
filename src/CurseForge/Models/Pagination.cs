@@ -1,14 +1,16 @@
+using System.Text.Json.Serialization;
+
 namespace CurseForge.Models
 {
     public class CurseForgePagination
     {
-        [JsonProperty("index")]
+        [JsonPropertyName("index")]
         public required int Index { get; set; }
-        [JsonProperty("pageSize")]
+        [JsonPropertyName("pageSize")]
         public required int PageSize { get; set; }
-        [JsonProperty("resultCount")]
+        [JsonPropertyName("resultCount")]
         public required int ResultCount { get; set; }
-        [JsonProperty("totalCount")]
+        [JsonPropertyName("totalCount")]
         public required int TotalCount { get; set; }
     }
 }

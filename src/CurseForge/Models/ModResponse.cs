@@ -1,8 +1,10 @@
+using System.Text.Json.Serialization;
+
 namespace CurseForge.Models
 {    
     public class CurseForgeModResponse
     {
-        [JsonProperty("data")]
+        [JsonPropertyName("data")]
         public CurseForgeModSummary? Data { get; set; }
     }
 }
