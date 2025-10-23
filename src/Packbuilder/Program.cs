@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Packbuilder.Data;
 using Azure.Core;
+using CurseForge.Services;
 
 [assembly: InternalsVisibleTo("Packbuilder.Tests")]
 
