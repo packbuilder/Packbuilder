@@ -10,4 +10,5 @@ public static class RateLimitBuckets
     public const string ModpackRead = "modpack-read";
     public const string ModpackWrite = "modpack-write";
     public const string ProfileWrite = "profile-write";
+    public const string General = "general";
 }
