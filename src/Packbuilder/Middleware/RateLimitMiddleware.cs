@@ -50,9 +50,10 @@ public sealed class RateLimitMiddleware(IConnectionMultiplexer redis) : IMiddlew
 
         RateLimitAttribute? rateLimitAttribute = endpoint?.Metadata.GetMetadata<RateLimitAttribute>();
 
-        if (rateLimitAttribute != null)
+        RateLimitDefinition? rateLimit = RateLimitDefinitions.Get(rateLimitAttribute?.Bucket); 
+
+        if (rateLimitAttribute != null && rateLimit is not null)
         {
-            RateLimitDefinition rateLimit = RateLimitDefinitions.Get(rateLimitAttribute.Bucket); 
             return ($"rate:{rateLimitAttribute.Bucket}:{GetIdentifier(context)}", rateLimit.Limit, rateLimit.WindowSeconds);
         }
 

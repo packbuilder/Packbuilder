@@ -14,7 +14,7 @@ namespace Packbuilder.Controllers.AuthControllers
     [Route("sessions")]
     public class SessionsController(ISessionService sessionService) : ControllerBase
     {   
-        [RateLimit(RateLimitBuckets.General)]
+        [RateLimit]
         [Authorize]
         [HttpGet]
         public async Task<ActionResult<CreateUserDto>> GetUserData()
@@ -54,7 +54,7 @@ namespace Packbuilder.Controllers.AuthControllers
             }
         }
 
-        [RateLimit(RateLimitBuckets.General)]
+        [RateLimit]
         [Authorize]
         [HttpDelete]
         [EndpointName("Logout")]

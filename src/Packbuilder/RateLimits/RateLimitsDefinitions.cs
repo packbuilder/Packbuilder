@@ -3,7 +3,6 @@ public static class RateLimitDefinitions
 {
     private static readonly Dictionary<string, RateLimitDefinition> Definitions = new()
     {
-        [RateLimitBuckets.General] = new(100, 60),
         [RateLimitBuckets.Auth] = new(20, 60),
         [RateLimitBuckets.Jobs] = new(10, 60),
         [RateLimitBuckets.Downloads] = new(10, 60),
@@ -14,8 +13,7 @@ public static class RateLimitDefinitions
         [RateLimitBuckets.ProfileWrite] = new(20, 60)
     };
 
-    public static RateLimitDefinition Get(string bucket) =>
-        Definitions[bucket];
+    public static RateLimitDefinition? Get(string? bucket) => bucket is not null ? Definitions[bucket] : null;
 }
 public record RateLimitDefinition
 (
