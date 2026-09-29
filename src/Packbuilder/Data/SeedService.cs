@@ -31,13 +31,15 @@ public class SeedService(PackbuilderContext db, IPasswordHasher<User> passwordHa
         Mod mod1 = new()
         {
             Platform = ModPlatform.CurseForge,
-            ReferenceId = "238222"
+            ReferenceId = "238222",
+            Name = "Just Enough Items (JEI)"
         };
 
         Mod mod2 = new()
         {
             Platform = ModPlatform.CurseForge,
-            ReferenceId = "348521"
+            ReferenceId = "348521",
+            Name = "Cloth Config API (Fabric/Forge/NeoForge)"
         };
 
         List<Mod> mods = [mod1, mod2];
