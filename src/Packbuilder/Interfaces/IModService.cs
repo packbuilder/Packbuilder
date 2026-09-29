@@ -5,6 +5,6 @@ namespace Packbuilder.Interfaces
 {
     public interface IModService
     {
-        public Task<Mod> GetOrCreateMod(ModPlatform platform, string referenceId);
+        public Task<Mod> GetOrCreateModAsync(ExternalModSummary modSummary);
     }
 }

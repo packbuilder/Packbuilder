@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Packbuilder.Attributes;
 using Packbuilder.Interfaces;
 using Packbuilder.Models;
 
@@ -9,6 +10,7 @@ namespace Packbuilder.Controllers
     [Route("/bookmarks")]
     public class BookmarksController(ISessionService sessionService, IBookmarkService bookmarkService) : ControllerBase
     {
+        [RateLimit]
         [HttpGet("{modpackId}")]
         [EndpointName("GetBookmark")]
         public async Task<ActionResult<Bookmark?>> GetBookmark(int modpackId)
@@ -25,6 +27,7 @@ namespace Packbuilder.Controllers
             return Ok(bookmark);
         }
 
+        [RateLimit]
         [HttpGet]
         [EndpointName("GetAllBookmarks")]
         public async Task<ActionResult<List<Bookmark>>> GetAllBookmarks()
@@ -41,6 +44,7 @@ namespace Packbuilder.Controllers
             return Ok(userBookmarks ?? []);
         }
 
+        [RateLimit]
         [Authorize]
         [HttpPost("{modpackId}")]
         [EndpointName("CreateBookmark")]
@@ -58,6 +62,7 @@ namespace Packbuilder.Controllers
             return Created();
         }
 
+        [RateLimit]
         [Authorize]
         [HttpDelete("{modpackId}")]
         [EndpointName("DeleteBookmark")]

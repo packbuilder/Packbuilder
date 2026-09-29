@@ -10,7 +10,7 @@ using Packbuilder.Models.enums;
 
 namespace Packbuilder.Services
 {
-    public class SuggestionService(PackbuilderContext context, ICurseForgeService curseForgeService) : ISuggestionService   
+    public class SuggestionService(PackbuilderContext context, ICurseForgeService curseForgeService, IModService modService, IExternalModService externalModService) : ISuggestionService   
     {
         public async Task<SuggestionDto?> GetSuggestionById(int suggestionId)
         {
@@ -131,6 +131,7 @@ namespace Packbuilder.Services
             return;
         }
 
+        // TODO: Refactor all functions below this comment. Perhaps create verification service because of specified work?
         public async Task<int> VerifyMinecraftSuggestionAsync(int suggestionId) {
             Suggestion? suggestion = await context.Suggestions
                 .Include(s => s.Modpack)
@@ -163,6 +164,10 @@ namespace Packbuilder.Services
 
             List<string> modificationReferenceIds = modifications
                 .Select(m => m.Mod.ReferenceId).ToList();
+            
+            List<ExternalModSummary> modSummaries = await externalModService.GetExternalModsAsync(ModPlatform.CurseForge, [..modpackReferenceIds, ..modificationReferenceIds]);
+
+            Dictionary<string, ExternalModSummary> modSummaryDictionary = modSummaries.ToDictionary(m => m.ReferenceId);
 
             ModCompatibilityResultDto? modificationsCompatibilityResult = await curseForgeService
                 .CheckModCompatibility(suggestion.GameVersion, minecraftModLoader, modificationReferenceIds) 
@@ -170,18 +175,18 @@ namespace Packbuilder.Services
             
             ModCompatibilityResultDto? modpackCompatibilityResult = await curseForgeService
                 .CheckModCompatibility(suggestion.GameVersion, minecraftModLoader, modpackReferenceIds.ToList())
-                    ?? throw new Exception("Problem with checking compatibility of modpack mods.");;
+                    ?? throw new Exception("Problem with checking compatibility of modpack mods.");
 
             List<Modification> conflictingModifications = modifications.Where(m =>
                     (m.ModAction == ModAction.Removed && !modpackReferenceIds.Contains(m.Mod.ReferenceId)) ||
                     (m.ModAction == ModAction.Added && modpackReferenceIds.Contains(m.Mod.ReferenceId))
                 ).ToList();
 
-            await ResolveMissingDependenciesAsync(suggestion, minecraftModLoader, modificationsCompatibilityResult.CompatibleMods.ToList(), modpackReferenceIds);
+            await ResolveMissingDependenciesAsync(suggestion, minecraftModLoader, modificationsCompatibilityResult.CompatibleMods.ToList(), modpackReferenceIds, modSummaryDictionary);
             
             await ResolveIncompatibleModificationsAsync(suggestion, modificationsCompatibilityResult.InCompatibleMods.ToList());
             
-            await ResolveIncompatibleModpackModsAsync(suggestion, modpackCompatibilityResult.InCompatibleMods.ToList());
+            await ResolveIncompatibleModpackModsAsync(suggestion, modpackCompatibilityResult.InCompatibleMods.ToList(), modSummaryDictionary);
 
             foreach (Modification modification in conflictingModifications)
             {
@@ -211,7 +216,7 @@ namespace Packbuilder.Services
             return suggestion.Id;
         }
 
-        private async Task ResolveMissingDependenciesAsync(Suggestion suggestion, MinecraftModLoader minecraftModLoader, List<string> compatibleModReferenceIds, HashSet<string> modpackReferenceIds)
+        private async Task ResolveMissingDependenciesAsync(Suggestion suggestion, MinecraftModLoader minecraftModLoader, List<string> compatibleModReferenceIds, HashSet<string> modpackReferenceIds, Dictionary<string, ExternalModSummary> modSummaryDictionary)
         {
             MissingDependenciesResultDto missingDependenciesDto = await curseForgeService
                 .CheckForMissingDependencies(suggestion.GameVersion, minecraftModLoader, compatibleModReferenceIds)
@@ -223,32 +228,25 @@ namespace Packbuilder.Services
 
             if(missingDependencies.Count == 0) return;
 
+            List<ExternalModSummary> missingModSummaries = await externalModService.GetExternalModsAsync(ModPlatform.CurseForge, [..missingDependencies]);
+
+            foreach (ExternalModSummary modSummary in missingModSummaries)
+            {
+                modSummaryDictionary.TryAdd(modSummary.ReferenceId, modSummary);
+            }
+
             foreach (string dependencyId in missingDependencies)
             {
-                Mod? mod = await context.Mods.SingleOrDefaultAsync(m => m.ReferenceId == dependencyId);
-
-                if(mod is null)
-                {
-                    mod = new()
-                    {
-                        ReferenceId = dependencyId,
-                        Platform = ModPlatform.CurseForge
-                    };
-
-                    context.Mods.Add(mod);
-                }
+                Mod? mod = await modService.GetOrCreateModAsync(modSummaryDictionary[dependencyId]);
 
                 if(!modpackReferenceIds.Contains(dependencyId) && !existingModificationReferenceIds.Contains(dependencyId))
                 {   
                     Modification newModification = suggestion.CreateModification(mod, ModAction.Added);
                     context.Modifications.Add(newModification);
-                    continue;
-                }
-                
-                if(modpackReferenceIds.Contains(dependencyId) && existingModificationReferenceIds.Contains(dependencyId))
+
+                } else if(modpackReferenceIds.Contains(dependencyId) && existingModificationReferenceIds.Contains(dependencyId))
                 {
                     Modification existingModification = suggestion.Modifications.SingleOrDefault(m => m.Mod.ReferenceId == dependencyId)!;
-
                     context.Modifications.Remove(existingModification);
                 }
             }
@@ -263,7 +261,7 @@ namespace Packbuilder.Services
             }
         }
 
-        private async Task ResolveIncompatibleModpackModsAsync(Suggestion suggestion, List<string> incompatibleModpackReferenceIds)
+        private async Task ResolveIncompatibleModpackModsAsync(Suggestion suggestion, List<string> incompatibleModpackReferenceIds, Dictionary<string, ExternalModSummary> modSummaryDictionary)
         {
             if(incompatibleModpackReferenceIds.Count == 0) return;
             
@@ -271,18 +269,7 @@ namespace Packbuilder.Services
 
             foreach (string referenceId in incompatibleModpackReferenceIds)
             {
-                Mod? mod = await context.Mods.SingleOrDefaultAsync(m => m.ReferenceId == referenceId);
-
-                if(mod is null)
-                {
-                    mod = new()
-                    {
-                        ReferenceId = referenceId,
-                        Platform = ModPlatform.CurseForge
-                    };
-
-                    context.Mods.Add(mod);
-                }
+                Mod? mod = await modService.GetOrCreateModAsync(modSummaryDictionary[referenceId]);
                 
                 if(!existingModificationReferenceIds.Contains(referenceId))
                 {    

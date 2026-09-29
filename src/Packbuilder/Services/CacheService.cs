@@ -13,6 +13,8 @@ namespace Packbuilder.Services
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
+        private readonly string curseforgeKeyPrefix = "curseforge:v1"; 
+        private readonly string thunderstoreKeyPrefix = "thunderstore:v1";
 
         public async Task<T?> GetPaginationDataAsync<T>(string searchPayload, ModPlatform modPlatform)
         {
@@ -20,10 +22,10 @@ namespace Packbuilder.Services
 
             if(modPlatform == ModPlatform.Thunderstore)
             {
-                cacheKey = $"pagination:thunderstore:{searchPayload}";     
+                cacheKey = $"pagination:{thunderstoreKeyPrefix}:{searchPayload}";     
             } else
             {
-                cacheKey = $"pagination:curseforge:{searchPayload}";
+                cacheKey = $"pagination:{curseforgeKeyPrefix}:{searchPayload}";
             }
 
             var value = await _db.StringGetAsync(cacheKey);
@@ -45,10 +47,10 @@ namespace Packbuilder.Services
 
             if(modPlatform == ModPlatform.Thunderstore)
             {
-                cacheKey = $"mod:thunderstore:{modId}";     
+                cacheKey = $"mod:{thunderstoreKeyPrefix}:{modId}";     
             } else
             {
-                cacheKey = $"mod:curseforge:{modId}";
+                cacheKey = $"mod:{curseforgeKeyPrefix}:{modId}";
             }
 
             RedisValue value = await _db.StringGetAsync(cacheKey);
@@ -76,10 +78,10 @@ namespace Packbuilder.Services
 
                 if(modPlatform == ModPlatform.Thunderstore)
                 {
-                    cacheKey = $"mod:thunderstore:{modId}";     
+                    cacheKey = $"mod:{thunderstoreKeyPrefix}:{modId}";     
                 } else
                 {
-                    cacheKey = $"mod:curseforge:{modId}";
+                    cacheKey = $"mod:{curseforgeKeyPrefix}:{modId}";
                 }
 
                 RedisValue value = await _db.StringGetAsync(cacheKey);
@@ -112,10 +114,10 @@ namespace Packbuilder.Services
 
                 if(modPlatform == ModPlatform.Thunderstore)
                 {
-                    cacheKey = $"mod:thunderstore:{modId}";     
+                    cacheKey = $"mod:{thunderstoreKeyPrefix}:{modId}";     
                 } else
                 {
-                    cacheKey = $"mod:curseforge:{modId}";
+                    cacheKey = $"mod:{curseforgeKeyPrefix}:{modId}";
                 }
 
                 bool status = await _db.StringSetAsync(cacheKey, jsonModData, TimeSpan.FromDays(3));
@@ -134,10 +136,10 @@ namespace Packbuilder.Services
 
             if(modPlatform == ModPlatform.Thunderstore)
             {
-                cacheKey = $"pagination:thunderstore:{searchPayload}";     
+                cacheKey = $"pagination:{thunderstoreKeyPrefix}:{searchPayload}";     
             } else
             {
-                cacheKey = $"pagination:curseforge:{searchPayload}";
+                cacheKey = $"pagination:{curseforgeKeyPrefix}:{searchPayload}";
             }
 
             bool status = await _db.StringSetAsync(cacheKey, jsonSearchData, TimeSpan.FromMinutes(15));

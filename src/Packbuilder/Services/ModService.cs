@@ -7,22 +7,24 @@ namespace Packbuilder.Services
 {
     public class ModService(PackbuilderContext context) : IModService
     {
-        public async Task<Mod> GetOrCreateMod(ModPlatform platform, string referenceId)
+        public async Task<Mod> GetOrCreateModAsync(ExternalModSummary modSummary)
         {
-            Mod? mod = await context.Mods.SingleOrDefaultAsync(m => m.ReferenceId == referenceId);
+            Mod? mod = await context.Mods.SingleOrDefaultAsync(m => m.ReferenceId == modSummary.ReferenceId && m.Platform == modSummary.Platform);
 
-            if(mod is null)
-            {    
+            if (mod is null)
+            {
                 mod = new()
                 {
-                    Platform = platform,
-                    ReferenceId = referenceId
+                    Platform = modSummary.Platform,
+                    ReferenceId = modSummary.ReferenceId,
+                    Name = modSummary.Name
                 };
 
                 context.Mods.Add(mod);
-                await context.SaveChangesAsync();
-
-                return mod;
+            }
+            else if (mod.Name != modSummary.Name)
+            {
+                mod.Name = modSummary.Name;
             }
 
             return mod;

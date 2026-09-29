@@ -1,6 +1,8 @@
 using System.Security.Claims;
+using CurseForge.Dtos.CurseForgeApiDtos;
 using CurseForge.Dtos.ManifestDtos;
 using CurseForge.Interfaces;
+using CurseForge.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,13 +13,14 @@ using Packbuilder.Dto.ModpackDtos;
 using Packbuilder.Dto.Update;
 using Packbuilder.Interfaces;
 using Packbuilder.Models;
+using Packbuilder.Models.enums;
 using Packbuilder.RateLimits;
 
 namespace Packbuilder.Controllers.ModpackControllers
 {
     [ApiController]
     [Route("/modpacks")]
-    public class ModpacksController(PackbuilderContext context, IModpackService modpackService, ICurseForgeManifestService curseForgeManifestService) : ControllerBase
+    public class ModpacksController(PackbuilderContext context, IModpackService modpackService, ICurseForgeManifestService curseForgeManifestService, IExternalModService externalModService, ICurseForgeModpackService curseForgeModpackService) : ControllerBase
     {
         [RateLimit(RateLimitBuckets.ModpackRead)]
         [HttpGet("/user-modpacks/{userId:int}")]
@@ -63,7 +66,7 @@ namespace Packbuilder.Controllers.ModpackControllers
         [EndpointName("DownloadCurseforgeManifest")]
         public async Task<ActionResult> DownloadCurseForgeManifest([FromRoute] int modpackId, [FromRoute] float versionIteration)
         {
-            MemoryStream manifestZip = await modpackService.GetCurseForgeModpackManifest(modpackId, versionIteration);
+            MemoryStream manifestZip = await curseForgeModpackService.GetCurseForgeModpackManifest(modpackId, versionIteration);
 
             return File(manifestZip, "application/zip", "manifest.zip");
         }
@@ -85,19 +88,23 @@ namespace Packbuilder.Controllers.ModpackControllers
             
             return Created();
         }
-        
+        // TODO: Maybe expand this endpoint to handle any mod platform instead of making individual endpoints for each platform?
         [RateLimit(RateLimitBuckets.Uploads)]
         [Authorize(Policy = "VerifiedEmail")]
-        [HttpPost("import")]
+        [HttpPost("import/curseforge")]
         [Consumes("multipart/form-data")]
-        [EndpointName("ImportModpack")]
+        [EndpointName("ImportCurseForgeModpack")]
         public async Task<ActionResult> ImportCurseforgeModpack([FromForm] ImportModpackDto body)
         {
             int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);            
 
             CurseForgeManifestDto manifestDto = await curseForgeManifestService.ParseManifestFile(body.File);
 
-            await modpackService.ImportCurseForgeModpackAsync(manifestDto, userId, body.AvatarDto);
+            List<string> modReferenceIds = manifestDto.ModFiles.Select(m => m.ProjectId.ToString()).ToList();
+
+            List<ExternalModSummary> modSummaries = await externalModService.GetExternalModsAsync(ModPlatform.CurseForge,modReferenceIds);
+
+            await curseForgeModpackService.ImportCurseForgeModpackAsync(manifestDto, modSummaries, userId, body.AvatarDto);
 
             return Created();
         }

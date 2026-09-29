@@ -1,9 +1,6 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Expressions;
-using Packbuilder.Dto.Create;
-using Packbuilder.Interfaces;
+using Packbuilder.Attributes;
 using Packbuilder.Models;
 
 namespace Packbuilder.Controllers
@@ -12,6 +9,7 @@ namespace Packbuilder.Controllers
     [Route("/mods")]
     public class ModController(PackbuilderContext context) : ControllerBase
     {
+        [RateLimit]
         [HttpPost]
         [EndpointName("GetMods")]
         public async Task<ActionResult<Mod[]>> GetMods([FromBody] int[] modIds)
@@ -26,6 +24,7 @@ namespace Packbuilder.Controllers
             return Ok(mods);
         }
 
+        [RateLimit]
         [HttpPost("/mods/referenceIds")]
         [EndpointName("GetModReferenceIds")]
         public async Task<ActionResult<Mod[]>> GetModReferenceIds([FromBody] int[] modIds)

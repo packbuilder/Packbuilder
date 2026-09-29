@@ -1,3 +1,4 @@
+using CurseForge.Dtos.CurseForgeApiDtos;
 using Microsoft.EntityFrameworkCore;
 using Packbuilder.Dto.Create;
 using Packbuilder.Interfaces;
@@ -6,7 +7,7 @@ using Packbuilder.Models.enums;
 
 namespace Packbuilder.Services
 {
-    public class ModificationService(PackbuilderContext context) : IModificationService
+    public class ModificationService(PackbuilderContext context, IExternalModService externalModService, IModService modService) : IModificationService
     {
         public async Task CreateModificationAsync(CreateModificationDto dto, int suggestionId)
         {
@@ -14,18 +15,10 @@ namespace Packbuilder.Services
                 .Include(s => s.Modifications)
                     .ThenInclude(m => m.Mod).SingleOrDefaultAsync(s => s.Id == suggestionId)
                         ?? throw new Exception($"Modification could not be created because suggestion with id {suggestionId} doesn't exist");
-            Mod? mod = await context.Mods.SingleOrDefaultAsync(m => m.ReferenceId == dto.ModReferenceId);
 
-            if(mod is null)
-            {
-                mod = new()
-                {
-                    Platform = dto.ModPlatform,
-                    ReferenceId = dto.ModReferenceId
-                };
+            ExternalModSummary externalModSummary = await externalModService.GetExternalModAsync(dto.ModPlatform, dto.ModReferenceId);
 
-                context.Mods.Add(mod);
-            }
+            Mod mod = await modService.GetOrCreateModAsync(externalModSummary);
 
             Modification? existingModification = suggestion.Modifications.FirstOrDefault(m => m.Mod.ReferenceId == mod.ReferenceId);
 
@@ -39,6 +32,7 @@ namespace Packbuilder.Services
 
             context.Suggestions.Update(suggestion);
             context.Modifications.Add(modification);
+
             await context.SaveChangesAsync();
 
             return;
@@ -49,21 +43,20 @@ namespace Packbuilder.Services
             Suggestion? suggestion = await context.Suggestions.SingleOrDefaultAsync(s => s.Id == suggestionId)  
                 ?? throw new Exception($"Modification could not be created because suggestion with id {suggestionId} doesn't exist");
 
+            List<string> modReferenceIds = dtos.Select(m => m.ModReferenceId).ToList();
+
+            ModPlatform modPlatform = dtos[0].ModPlatform;
+            
+            List<ExternalModSummary> externalModSummaries = await externalModService.GetExternalModsAsync(modPlatform, modReferenceIds);
+
+            Dictionary<string, ExternalModSummary> modsByReferenceId = externalModSummaries.ToDictionary(m => m.ReferenceId);
+
             foreach (CreateModificationDto dto in dtos)
             {
-                Mod? mod = await context.Mods.SingleOrDefaultAsync(m => m.ReferenceId == dto.ModReferenceId);
+                ExternalModSummary modSummary = modsByReferenceId[dto.ModReferenceId];
 
-                if(mod is null)
-                {
-                    mod = new()
-                    {
-                        Platform = dto.ModPlatform,
-                        ReferenceId = dto.ModReferenceId
-                    };
-
-                    context.Mods.Add(mod);
-                }
-
+                Mod mod = await modService.GetOrCreateModAsync(modSummary);
+               
                 Modification modification = suggestion.CreateModification(mod, dto.ModAction);
 
                 context.Modifications.Add(modification);

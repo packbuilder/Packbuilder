@@ -15,5 +15,8 @@ namespace Packbuilder.Models
         [Required]
         [Column("reference_id")]
         public required string ReferenceId { get; set; }
+        [Required]
+        [Column("name")]
+        public required string Name { get; set; } = null!;
     }
 }

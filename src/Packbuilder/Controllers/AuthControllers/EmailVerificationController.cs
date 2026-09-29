@@ -16,6 +16,7 @@ namespace Packbuilder.Controllers.AuthControllers
     [Route("/verification")]
     public class EmailVerificationController(PackbuilderContext context, IUserService userService, IConnectionMultiplexer redis, IOptions<AppSettings> appSettings) : ControllerBase
     {
+        [RateLimit]
         [HttpGet]
         [EndpointName("VerifyEmail")]
         public async Task<IActionResult> VerifyEmail([FromQuery] string verificationCode, [FromQuery] int userId)

@@ -1,5 +1,6 @@
 using Packbuilder.Dto.Create;
 using Packbuilder.Models;
+using Packbuilder.Models.enums;
 
 namespace Packbuilder.Interfaces
 {

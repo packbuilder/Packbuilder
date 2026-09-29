@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
 using Packbuilder.Attributes;
 using Packbuilder.Dto.Create;
 using Packbuilder.Dto.ModpackDtos;
@@ -78,6 +77,7 @@ namespace Packbuilder.Controllers.ModpackControllers
             return Created();
         }
         
+        // TODO: Ensure that frontend sends info about what platform this modification is for instead of assuming all modifications sent here are from the same platform?
         [RateLimit(RateLimitBuckets.ModpackWrite)]
         [Authorize(Policy = "VerifiedEmail")]
         [HttpPost("bulk")]
@@ -97,7 +97,6 @@ namespace Packbuilder.Controllers.ModpackControllers
             {
                 return BadRequest("Unable to create modifications.");
             }
-            
             await modificationService.CreateModificationsAsync(body, suggestionId);
 
             await eventDispatcher.PublishAsync<SuggestionUpdatedEvent>(new(suggestion.ModpackId, suggestionId));

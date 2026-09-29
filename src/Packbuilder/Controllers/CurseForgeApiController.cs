@@ -7,40 +7,20 @@ using CurseForge.Dtos.CurseForgeApiDtos;
 using CurseForge.enums;
 using Packbuilder.Attributes;
 using Packbuilder.RateLimits;
+using Packbuilder.Models;
 
 namespace Packbuilder.Controllers
 {
     [ApiController]
     [Route("curseforge")]
-    public class CurseForgeApiController(ICurseForgeApiService curseForgeApiService, ICacheService cacheService) : ControllerBase
+    public class CurseForgeApiController(ICurseForgeApiService curseForgeApiService, ICacheService cacheService, ICurseForgeModService curseForgeModService) : ControllerBase
     {
         [RateLimit(RateLimitBuckets.Curseforge)]
         [HttpGet("{referenceId}")]
         [EndpointName("GetMod")]
         public async Task<ActionResult<CurseForgeMod>> GetMod([FromRoute] string referenceId)
         {
-            CurseForgeMod? cachedData = await cacheService.GetModAsync<CurseForgeMod>(referenceId, ModPlatform.CurseForge);
-
-            if(cachedData is not null)
-            {   
-                Console.WriteLine("This is cached data");
-                return Ok(cachedData);
-            }
-
-            CurseForgeMod? curseForgeMod = await curseForgeApiService.GetModAsync(referenceId.ToString());
-
-            if (curseForgeMod is null)
-            {
-                return NotFound(null);
-            }
-
-            RedisModDataDto<CurseForgeMod> modDataDto = new()
-            {
-                ModId = curseForgeMod.ReferenceId,
-                ModData = curseForgeMod
-            };
-
-            await cacheService.SetModsAsync([modDataDto], ModPlatform.CurseForge);
+            CurseForgeMod curseForgeMod = await curseForgeModService.GetModWithCacheAsync(referenceId);
 
             return Ok(curseForgeMod);
         }
@@ -100,7 +80,6 @@ namespace Packbuilder.Controllers
             return Ok(minecraftVersions);
         }
 
-        // Add pagination. This endpoint will now take in a pagination parameter along with the entire list of modIds?
         [RateLimit(RateLimitBuckets.Curseforge)]
         [HttpPost]
         [EndpointName("GetModsCurseForge")]
@@ -111,32 +90,9 @@ namespace Packbuilder.Controllers
                 return BadRequest([]);
             }
 
-            ModCacheDto<CurseForgeMod>? modCacheDto = await cacheService.GetModsAsync<CurseForgeMod>(modIds, ModPlatform.CurseForge);
+            List<CurseForgeMod> curseForgeMods = await curseForgeModService.GetModsWithCacheAsync(modIds);
 
-            if(modCacheDto.UncachedModIds.Count <= 0)
-            {
-                Console.WriteLine("This is cached data");
-                return Ok(modCacheDto.CachedMods);
-            }
-
-            List<CurseForgeMod>? curseForgeMods = await curseForgeApiService.GetModsAsync(modCacheDto.UncachedModIds);
-
-            if (curseForgeMods is null)
-            {
-                return NotFound(null);
-            }
-
-            List<RedisModDataDto<CurseForgeMod>> modDataDtos = curseForgeMods.Select(mod => new RedisModDataDto<CurseForgeMod>
-            {
-                ModId = mod.ReferenceId,
-                ModData = mod
-            }).ToList();
-
-            await cacheService.SetModsAsync(modDataDtos, ModPlatform.CurseForge);
-
-            List<CurseForgeMod> mods = [..modCacheDto.CachedMods, ..curseForgeMods];
-
-            return Ok(mods);
+            return Ok(curseForgeMods);
         }
     }
 }

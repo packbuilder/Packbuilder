@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Packbuilder.Attributes;
 using Packbuilder.Dto.ModpackDtos;
+using Packbuilder.Interfaces;
 using Packbuilder.Models;
 using Packbuilder.RateLimits;
 
@@ -9,20 +10,13 @@ namespace Packbuilder.Controllers.ModpackControllers
 {
     [ApiController]
     [Route("/modpacks/{modpackId}/versions/{iteration}/mods")]
-    public class VersionModsController(PackbuilderContext context) : ControllerBase
+    public class VersionModsController(PackbuilderContext context, IPaginationService paginationService) : ControllerBase
     {
         [RateLimit(RateLimitBuckets.ModpackRead)]
         [HttpGet]
         [EndpointName("GetModsPackbuilder")]
-        public async Task<ActionResult<PaginatedResponse<VersionMod>>> GetVersionMods([FromRoute] float iteration, [FromRoute] int modpackId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<PaginatedResponse<VersionMod>>> GetVersionMods([FromRoute] float iteration, [FromRoute] int modpackId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchQuery = "")
         {
-            if(page < 1 || pageSize < 1)
-            {
-                return BadRequest();
-            }
-
-            pageSize = Math.Min(pageSize, 50);
-
             Modpack? curModpack = await context.Modpacks.SingleOrDefaultAsync(m => m.Id == modpackId);
 
             if(curModpack is null)
@@ -30,28 +24,13 @@ namespace Packbuilder.Controllers.ModpackControllers
                 return NotFound();
             }
             
-            IQueryable<VersionMod> query = context.VersionMods.Where(v => v.VersionIteration == iteration && v.ModpackId == curModpack.Id);
+            IQueryable<VersionMod> query = context.VersionMods.Where(v => v.VersionIteration == iteration && v.ModpackId == curModpack.Id && v.Mod.Name.Contains(searchQuery)).Include(v => v.Mod);
 
-            int totalItems = await query.CountAsync();
-            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
- 
-            List<VersionMod> versionMods = await query.Include(v => v.Mod)
-                    .Skip((page - 1) * pageSize)
-                        .Take(pageSize).ToListAsync();
-            
-            if (versionMods is null)
-            {
-                return NotFound();
-            }
+            PaginatedResponse<VersionMod> paginatedResponse = await paginationService.GetPaginatedData(query, page, pageSize); 
 
-            List<VersionModDto> versionModDtos = [.. versionMods.Select(v => new VersionModDto(v))];
+            List<VersionModDto> versionModDtos = [.. paginatedResponse.Items.Select(v => new VersionModDto(v))];
 
-            return Ok(new PaginatedResponse<VersionModDto> { 
-                Items = versionModDtos,
-                Page = page,
-                TotalPages = totalPages,
-                TotalItems = totalItems,
-            });
+            return Ok();
         }
     }
 }

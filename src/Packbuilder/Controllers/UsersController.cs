@@ -16,6 +16,7 @@ namespace Packbuilder.Controllers
     [Route("users")]
     public class UsersController(PackbuilderContext context, ISessionService sessionService, IUserService userService, IConnectionMultiplexer redis) : ControllerBase
     {
+        [RateLimit]
         [HttpGet("{id:int}")]
         [EndpointName("GetUserById")]
         public async Task<ActionResult<User>> GetUserById([FromRoute] int id)
@@ -68,6 +69,7 @@ namespace Packbuilder.Controllers
             return Ok(user);
         }
 
+        [RateLimit]
         [Authorize]
         [HttpDelete("{userId}")]
         public async Task<ActionResult> DeleteUser([FromRoute] int userId)

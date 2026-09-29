@@ -1,3 +1,4 @@
+using CurseForge.Dtos.CurseForgeApiDtos;
 using CurseForge.Dtos.ManifestDtos;
 using CurseForge.enums;
 using CurseForge.Interfaces;
@@ -11,7 +12,7 @@ using Packbuilder.Models.enums;
 
 namespace Packbuilder.Services
 {
-    public class ModpackService(PackbuilderContext context, ICurseForgeManifestService curseForgeManifestService) : IModpackService
+    public class ModpackService(PackbuilderContext context) : IModpackService
     {
         public async Task CreateModpackAsync(CreateModpackDto body, int userId)
         {
@@ -28,80 +29,10 @@ namespace Packbuilder.Services
 
             context.Modpacks.Add(modpack);
             context.Versions.Add(modpackVersion);
+
             await context.SaveChangesAsync();
 
             return;
-        }
-
-        public async Task ImportCurseForgeModpackAsync(CurseForgeManifestDto manifestDto, int userId, AvatarDto body)
-        {
-            User user = await context.Users.SingleOrDefaultAsync(u => u.Id == userId) ?? throw new Exception("Could not import modpack because user does not exist");
-
-            ModLoader modLoader = MinecraftModLoaderMapper.TryConvertFromMinecraftModLoader(manifestDto.ModLoader, out bool isSupported);
-
-            List<string> modReferenceIds = manifestDto.ModFiles.Select(m => m.ProjectId.ToString()).ToList();
-
-            if(!isSupported)
-            {
-                throw new Exception("This manifest is not using a supported mod loader");
-            }
-
-            Modpack modpack = Modpack.CreateModpack(manifestDto.Name, user, body.ImageType, body.ImageValue);
-
-            context.Modpacks.Add(modpack);
-
-            List<Mod> modpackMods = [];
-
-            foreach (string referenceId in modReferenceIds)
-            {
-                Mod? mod = await context.Mods.SingleOrDefaultAsync(m => m.ReferenceId == referenceId);
-
-                if(mod is null)
-                {
-                    mod = new()
-                    {
-                        ReferenceId = referenceId,
-                        Platform = ModPlatform.CurseForge
-                    };
-
-                    context.Mods.Add(mod);
-                }
-
-                modpackMods.Add(mod);
-            }
-
-            ModpackVersion modpackVersion = modpack.CreateVersionFromMods(modpackMods, manifestDto.GameVersion, modLoader);
-
-            context.Versions.Add(modpackVersion);
-
-            foreach (VersionMod versionMod in modpackVersion.VersionMods)
-            {
-                context.VersionMods.Add(versionMod);
-            }
-
-            await context.SaveChangesAsync();
-            
-            return;
-        }
-
-        public async Task<MemoryStream> GetCurseForgeModpackManifest(int modpackId, float versionIteration)
-        {
-            Modpack? modpack = await context.Modpacks
-                .Include(m => m.User).Include(m => m.Versions.Where(v => v.Iteration == versionIteration))
-                    .SingleOrDefaultAsync(m => m.Id == modpackId) ?? throw new Exception($"Could not get manifest.json for modpack with id {modpackId} because it doesn't exist");  
-
-            ModpackVersion selectedVersion = modpack.Versions.First() 
-                ?? throw new Exception($"Version {versionIteration} does not exist for modpack with id {modpackId}");
-
-            MinecraftModLoader minecraftModLoader = MinecraftModLoaderMapper.TryConvertToMinecraftModLoader(selectedVersion.ModLoader, out bool isSupported);
-
-            if(!isSupported) throw new Exception($"Modpack {modpackId} version {versionIteration} is not using a known minecraft launcher");
-
-            List<string>? modReferenceIds = await context.VersionMods.Include(v => v.Mod).Where(v => v.ModpackId == modpackId && v.VersionIteration == versionIteration).Select(v => v.Mod.ReferenceId).ToListAsync();
-
-            MemoryStream manifestZip = await curseForgeManifestService.CreateManifestZipFile(modReferenceIds, selectedVersion.GameVersion, minecraftModLoader, modpack.Name, versionIteration.ToString(), modpack.User.Name);
-
-            return manifestZip;
         }
 
         public async Task UpdateModpackAsync(UpdateModpackDto body, int modpackId)
