@@ -14,23 +14,28 @@ namespace Packbuilder.Controllers.ModpackControllers
 {
     [ApiController]
     [Route("modpacks/{modpackId}/suggestions/{suggestionId}/modifications")]
-    public class ModificationsController(PackbuilderContext context, ISessionService sessionService, IModificationService modificationService, IEventDispatcher eventDispatcher) : ControllerBase
+    public class ModificationsController(PackbuilderContext context, ISessionService sessionService, IModificationService modificationService, IEventDispatcher eventDispatcher, IPaginationService paginationService) : ControllerBase
     {
         [RateLimit(RateLimitBuckets.ModpackRead)]
         [HttpGet]
         [EndpointName("GetAllModifications")]
-        public async Task<ActionResult<List<ModificationDto>>> GetModifications([FromRoute] int suggestionId)
+        public async Task<ActionResult<List<ModificationDto>>> GetModifications([FromRoute] int suggestionId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchQuery = "", [FromQuery] string? filter = null)
         {
-            Modification[]? modifications = await context.Modifications.Where(m => m.SuggestionId == suggestionId).Include(m => m.Mod).ToArrayAsync();
+            IQueryable<Modification> query = context.Modifications.Include(m => m.Mod).Where(m => m.SuggestionId == suggestionId && m.Mod.Name.Contains(searchQuery));
 
-            if (modifications is null)
+            if(Enum.TryParse<ConflictState>(filter, out var conflictState) && Enum.IsDefined(conflictState))
             {
-                return NotFound("There are currently no modifications for this modpack suggestion.");
+                query = query.Where(m => m.ConflictState == conflictState);
             }
 
-            List<ModificationDto> modificationDtos = modifications.Select(m => new ModificationDto(m)).ToList();
+            PaginatedResponse<Modification> paginatedResponse = await paginationService.GetPaginatedData(query, page, pageSize);
 
-            return Ok(modificationDtos);
+            return Ok(new PaginatedResponse<ModificationDto>()
+            {
+                Items = [.. paginatedResponse.Items.Select(m => new ModificationDto(m))],
+                Page = paginatedResponse.Page,
+                PageSize = paginatedResponse.PageSize
+            });
         }
 
         [RateLimit(RateLimitBuckets.ModpackRead)]
