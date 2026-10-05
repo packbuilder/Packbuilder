@@ -28,9 +28,12 @@ namespace Packbuilder.Controllers.ModpackControllers
 
             PaginatedResponse<VersionMod> paginatedResponse = await paginationService.GetPaginatedData(query, page, pageSize); 
 
-            List<VersionModDto> versionModDtos = [.. paginatedResponse.Items.Select(v => new VersionModDto(v))];
-
-            return Ok();
+            return Ok(new PaginatedResponse<VersionModDto>()
+            {
+                Items = [.. paginatedResponse.Items.Select(v => new VersionModDto(v))],
+                Page = paginatedResponse.Page,
+                PageSize = paginatedResponse.PageSize
+            });
         }
     }
 }
