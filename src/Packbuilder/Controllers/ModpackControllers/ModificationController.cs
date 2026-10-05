@@ -19,11 +19,16 @@ namespace Packbuilder.Controllers.ModpackControllers
         [RateLimit(RateLimitBuckets.ModpackRead)]
         [HttpGet]
         [EndpointName("GetAllModifications")]
-        public async Task<ActionResult<List<ModificationDto>>> GetModifications([FromRoute] int suggestionId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchQuery = "", [FromQuery] string? filter = null)
+        public async Task<ActionResult<List<ModificationDto>>> GetModifications([FromRoute] int suggestionId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchQuery = "", [FromQuery] string? modActionFilter = null, [FromQuery] string? conflictingFilter = null)
         {
             IQueryable<Modification> query = context.Modifications.Include(m => m.Mod).Where(m => m.SuggestionId == suggestionId && m.Mod.Name.Contains(searchQuery));
 
-            if(Enum.TryParse<ConflictState>(filter, out var conflictState) && Enum.IsDefined(conflictState))
+            if(Enum.TryParse<ModAction>(modActionFilter, out var modAction) && Enum.IsDefined(modAction))
+            {
+                query = query.Where(m => m.ModAction == modAction);
+            }
+
+            if(Enum.TryParse<ConflictState>(conflictingFilter, out var conflictState) && Enum.IsDefined(conflictState))
             {
                 query = query.Where(m => m.ConflictState == conflictState);
             }
