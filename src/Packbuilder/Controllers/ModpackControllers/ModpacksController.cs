@@ -63,10 +63,10 @@ namespace Packbuilder.Controllers.ModpackControllers
 
         [RateLimit(RateLimitBuckets.Downloads)]
         [HttpGet("{modpackId}/download/version/{versionIteration}")]
-        [EndpointName("DownloadCurseforgeManifest")]
+        [EndpointName("DownloadMinecraftManifest")]
         public async Task<ActionResult> DownloadCurseForgeManifest([FromRoute] int modpackId, [FromRoute] float versionIteration)
         {
-            MemoryStream manifestZip = await curseForgeModpackService.GetCurseForgeModpackManifest(modpackId, versionIteration);
+            MemoryStream manifestZip = await curseForgeModpackService.CreateMinecraftModpackManifest(modpackId, versionIteration);
 
             return File(manifestZip, "application/zip", "manifest.zip");
         }
@@ -104,7 +104,7 @@ namespace Packbuilder.Controllers.ModpackControllers
 
             List<ExternalModSummary> modSummaries = await externalModService.GetExternalModsAsync(ModPlatform.CurseForge,modReferenceIds);
 
-            await curseForgeModpackService.ImportCurseForgeModpackAsync(manifestDto, modSummaries, userId, body.AvatarDto);
+            await curseForgeModpackService.ImportMinecraftModpackAsync(manifestDto, modSummaries, userId, body.AvatarDto);
 
             return Created();
         }

@@ -15,6 +15,8 @@ namespace Packbuilder.Dto.ModpackDtos
         public required string ImageValue { get; set; }
         [JsonPropertyName("slug")]
         public required string Slug { get; set; }
+        [JsonPropertyName("game")]
+        public required Game Game { get; set; }
         [JsonPropertyName("userId")]
         public required int UserId { get; set; }
     }

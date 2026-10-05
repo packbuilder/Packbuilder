@@ -25,6 +25,7 @@ public class SeedService(PackbuilderContext db, IPasswordHasher<User> passwordHa
             ImageType = ImageType.Stock,
             Slug = Modpack.GenerateSlug("TheWoah"),
             UserId = user.Id,
+            Game = Game.Minecraft,
             User = user
         };
 

@@ -25,7 +25,8 @@ namespace Packbuilder.Dto.Create
         [Required]
         [JsonPropertyName("imageValue")]
         public required string ImageValue { get; set; }
-
-        //TODO: Add game id here if I ever decide to support more games
+        [Required]
+        [JsonPropertyName("game")]
+        public required Game Game { get; set; }
     }
 }

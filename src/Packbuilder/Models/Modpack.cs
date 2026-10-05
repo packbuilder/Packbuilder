@@ -25,10 +25,13 @@ namespace Packbuilder.Models
         [Required]
         [Column("user_id")]
         public required int UserId { get; set; }
+        [Required]
+        [Column("game")]
+        public required Game Game { get; set; }
         public ICollection<ModpackVersion> Versions { get; set; } = [];
         public User User { get; set; } = null!;
 
-        public static Modpack CreateModpack(string name, User currentUser, ImageType imageType, string imageValue)
+        public static Modpack CreateModpack(string name, User currentUser, ImageType imageType, string imageValue, Game game)
         {
             return new Modpack()
             {
@@ -36,7 +39,8 @@ namespace Packbuilder.Models
                 UserId = currentUser.Id,
                 Slug = Modpack.GenerateSlug(name + currentUser.Name),
                 ImageType = imageType,
-                ImageValue = imageValue
+                ImageValue = imageValue,
+                Game = game
             };
         }
 
