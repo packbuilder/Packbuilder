@@ -20,23 +20,28 @@ namespace Packbuilder.Controllers.ModpackControllers
 {
     [ApiController]
     [Route("/modpacks")]
-    public class ModpacksController(PackbuilderContext context, IModpackService modpackService, ICurseForgeManifestService curseForgeManifestService, IExternalModService externalModService, ICurseForgeModpackService curseForgeModpackService) : ControllerBase
+    public class ModpacksController(PackbuilderContext context, IModpackService modpackService, ICurseForgeManifestService curseForgeManifestService, IExternalModService externalModService, ICurseForgeModpackService curseForgeModpackService, IPaginationService paginationService) : ControllerBase
     {
         [RateLimit(RateLimitBuckets.ModpackRead)]
         [HttpGet("/user-modpacks/{userId:int}")]
         [EndpointName("GetUserModpacks")]
-        public async Task<ActionResult<List<Modpack>?>> GetUserModpacks([FromRoute] int userId)
+        public async Task<ActionResult<List<Modpack>?>> GetUserModpacks([FromRoute] int userId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchQuery = "")
         {
-            List<Modpack> userModpacks = await context.Modpacks
+            IQueryable<Modpack> query = context.Modpacks
                 .Include(m => m.User)
                     .Include(m => m.Versions.OrderByDescending(v => v.Iteration).Take(1))
                         .ThenInclude(v => v.VersionMods)
                             .ThenInclude(v => v.Mod)
-                                .Where(m => m.UserId == userId).ToListAsync();
+                                .Where(m => m.UserId == userId && m.Name.Contains(searchQuery));
 
-            List<ModpackDto> modpackDtos = userModpacks.Select(modpack => new ModpackDto(modpack)).ToList();
+            PaginatedResponse<Modpack> paginatedResponse = await paginationService.GetPaginatedData(query, page, pageSize);
 
-            return Ok(modpackDtos);
+            return Ok(new PaginatedResponse<ModpackDto>()
+            {
+                Items = [.. paginatedResponse.Items.Select(m => new ModpackDto(m))],
+                Page = paginatedResponse.Page,
+                PageSize = paginatedResponse.PageSize
+            });
         }
 
         [RateLimit(RateLimitBuckets.ModpackRead)]
