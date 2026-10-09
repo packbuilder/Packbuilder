@@ -28,13 +28,7 @@ namespace Packbuilder.Dto.ModpackDtos
 
             if(suggestion.Modpack is not null)
             {    
-                ModpackDto = new ModpackDto(suggestion.Modpack)
-                {
-                    Id = suggestion.Modpack.Id,
-                    Name = suggestion.Modpack.Name,
-                    Slug = suggestion.Modpack.Slug,
-                    UserId = suggestion.Modpack.UserId
-                };
+                ModpackDto = new ModpackDto(suggestion.Modpack);
             }
             
             ModificationDtos = [.. suggestion.Modifications.Select(m => new ModificationDto(m))];

@@ -10,13 +10,6 @@ namespace Packbuilder.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "name",
-                table: "mods",
-                type: "text",
-                nullable: false,
-                defaultValue: "");
-
             migrationBuilder.AddColumn<int>(
                 name: "game",
                 table: "modpack",
