@@ -40,6 +40,8 @@ namespace Packbuilder.Controllers.ModpackControllers
             {
                 Items = [.. paginatedResponse.Items.Select(m => new ModpackDto(m))],
                 Page = paginatedResponse.Page,
+                TotalItems = paginatedResponse.TotalItems,
+                TotalPages = paginatedResponse.TotalPages,
                 PageSize = paginatedResponse.PageSize
             });
         }

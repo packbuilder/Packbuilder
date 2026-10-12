@@ -41,7 +41,12 @@ namespace Packbuilder.Controllers
                 return Unauthorized();
             }
 
-            IQueryable<Bookmark>? query = context.Bookmarks.Include(b => b.Modpack).ThenInclude(m => m.User).Where(b => b.UserId == curUser.Id).Where(b => b.Modpack.Name.Contains(searchQuery));
+            IQueryable<Bookmark>? query = context.Bookmarks.Include(b => b.Modpack).ThenInclude(m => m.User)
+                .Include(b => b.Modpack)
+                    .ThenInclude(m => m.Versions.OrderByDescending(v => v.Iteration).Take(1))
+                        .ThenInclude(v => v.VersionMods)
+                            .ThenInclude(vm => vm.Mod).Where(b => b.UserId == curUser.Id)
+                                .Where(b => b.Modpack.Name.Contains(searchQuery));
 
             PaginatedResponse<Bookmark> paginatedResponse = await paginationService.GetPaginatedData(query, page, pageSize);
 

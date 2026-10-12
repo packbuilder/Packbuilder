@@ -7,6 +7,8 @@ namespace Packbuilder.Dto.ModpackDtos
 {
     public class BookmarkDto
     {
+        [JsonPropertyName("id")]
+        public required int Id { get; set; }
         [JsonPropertyName("userId")] 
         public required int UserId { get; set; }
         [JsonPropertyName("modpackId")]
@@ -17,6 +19,7 @@ namespace Packbuilder.Dto.ModpackDtos
         [SetsRequiredMembers]
         public BookmarkDto(Bookmark bookmark)
         {
+            Id = bookmark.Id;
             UserId = bookmark.UserId;
             ModpackId = bookmark.ModpackId;
 

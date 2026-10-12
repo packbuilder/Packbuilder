@@ -44,6 +44,7 @@ builder.Services.AddTransient<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddTransient<ISessionService, SessionService>();
 builder.Services.AddTransient<IVersionService, VersionService>();
 builder.Services.AddTransient<IExternalModService, ExternalModService>();
+builder.Services.AddTransient<IPaginationService, PaginationService>();
 builder.Services.AddTransient<ICurseForgeModService, CurseForgeModService>();
 builder.Services.AddTransient<ICurseForgeModpackService, CurseForgeModpackService>();
 builder.Services.AddTransient<IVersionModService, VersionModService>();

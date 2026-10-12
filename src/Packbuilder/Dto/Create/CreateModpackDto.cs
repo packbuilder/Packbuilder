@@ -11,7 +11,6 @@ namespace Packbuilder.Dto.Create
         [Name]
         [JsonPropertyName("name")]
         public required string Name { get; set; }
-
         [Required]
         [GameVersion]
         [JsonPropertyName("gameVersion")]

@@ -7,7 +7,7 @@ namespace Packbuilder.Services
 {
     public class PaginationService() : IPaginationService
     {
-        public async Task<PaginatedResponse<T>> GetPaginatedData<T>(IQueryable<T> query, int pageSize, int page)
+        public async Task<PaginatedResponse<T>> GetPaginatedData<T>(IQueryable<T> query, int page, int pageSize)
         {
             if(page < 1 || pageSize < 1)
             {
@@ -17,7 +17,13 @@ namespace Packbuilder.Services
             pageSize = Math.Min(pageSize, 50);
 
             int totalItems = await query.CountAsync();
-            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            int totalPages = (int)Math.Max(1, Math.Ceiling((double)totalItems / pageSize));
+
+            Console.WriteLine("---------------------------------------------------------------");
+            Console.WriteLine($"Page: {page}");
+            Console.WriteLine($"Page size: {pageSize}");
+            Console.WriteLine($"Total items: {totalItems}");
+            Console.WriteLine("---------------------------------------------------------------");
 
             List<T> paginatedData = await query
                     .Skip((page - 1) * pageSize)
@@ -28,6 +34,7 @@ namespace Packbuilder.Services
                 Page = page,
                 TotalPages = totalPages,
                 TotalItems = totalItems,
+                PageSize = pageSize
             };
         }
     }
