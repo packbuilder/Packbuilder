@@ -32,7 +32,7 @@ namespace Packbuilder.Controllers.ModpackControllers
                     .Include(m => m.Versions.OrderByDescending(v => v.Iteration).Take(1))
                         .ThenInclude(v => v.VersionMods)
                             .ThenInclude(v => v.Mod)
-                                .Where(m => m.UserId == userId && m.Name.Contains(searchQuery));
+                                .Where(m => m.UserId == userId && EF.Functions.ILike(m.Name, $"%{searchQuery}%"));
 
             PaginatedResponse<Modpack> paginatedResponse = await paginationService.GetPaginatedData(query, page, pageSize);
 

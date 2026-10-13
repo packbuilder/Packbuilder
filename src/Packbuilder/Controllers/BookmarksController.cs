@@ -46,7 +46,7 @@ namespace Packbuilder.Controllers
                     .ThenInclude(m => m.Versions.OrderByDescending(v => v.Iteration).Take(1))
                         .ThenInclude(v => v.VersionMods)
                             .ThenInclude(vm => vm.Mod).Where(b => b.UserId == curUser.Id)
-                                .Where(b => b.Modpack.Name.Contains(searchQuery));
+                                .Where(b => EF.Functions.ILike(b.Modpack.Name, $"%{searchQuery}%"));
 
             PaginatedResponse<Bookmark> paginatedResponse = await paginationService.GetPaginatedData(query, page, pageSize);
 
@@ -54,6 +54,8 @@ namespace Packbuilder.Controllers
             {
                 Items = [..paginatedResponse.Items.Select(b => new BookmarkDto(b))],
                 Page = paginatedResponse.Page,
+                TotalItems = paginatedResponse.TotalItems,
+                TotalPages = paginatedResponse.TotalPages,
                 PageSize = paginatedResponse.PageSize
             });
         }

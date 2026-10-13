@@ -21,7 +21,7 @@ namespace Packbuilder.Controllers.ModpackControllers
         [EndpointName("GetAllModifications")]
         public async Task<ActionResult<List<ModificationDto>>> GetModifications([FromRoute] int suggestionId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchQuery = "", [FromQuery] string? modActionFilter = null, [FromQuery] string? conflictingFilter = null)
         {
-            IQueryable<Modification> query = context.Modifications.Include(m => m.Mod).Where(m => m.SuggestionId == suggestionId && m.Mod.Name.Contains(searchQuery));
+            IQueryable<Modification> query = context.Modifications.Include(m => m.Mod).Where(m => m.SuggestionId == suggestionId && EF.Functions.ILike(m.Mod.Name, $"%{searchQuery}%"));
 
             if(Enum.TryParse<ModAction>(modActionFilter, out var modAction) && Enum.IsDefined(modAction))
             {
@@ -39,6 +39,8 @@ namespace Packbuilder.Controllers.ModpackControllers
             {
                 Items = [.. paginatedResponse.Items.Select(m => new ModificationDto(m))],
                 Page = paginatedResponse.Page,
+                TotalItems = paginatedResponse.TotalItems,
+                TotalPages = paginatedResponse.TotalPages,
                 PageSize = paginatedResponse.PageSize
             });
         }

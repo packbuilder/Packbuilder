@@ -19,12 +19,6 @@ namespace Packbuilder.Services
             int totalItems = await query.CountAsync();
             int totalPages = (int)Math.Max(1, Math.Ceiling((double)totalItems / pageSize));
 
-            Console.WriteLine("---------------------------------------------------------------");
-            Console.WriteLine($"Page: {page}");
-            Console.WriteLine($"Page size: {pageSize}");
-            Console.WriteLine($"Total items: {totalItems}");
-            Console.WriteLine("---------------------------------------------------------------");
-
             List<T> paginatedData = await query
                     .Skip((page - 1) * pageSize)
                         .Take(pageSize).ToListAsync();

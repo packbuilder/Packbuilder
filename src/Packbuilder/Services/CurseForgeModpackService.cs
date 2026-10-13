@@ -32,6 +32,7 @@ namespace Packbuilder.Services
             foreach (ExternalModSummary modSummary in modSummaries)
             {
                 Mod mod = await modService.GetOrCreateModAsync(modSummary);
+                modpackMods.Add(mod);
             }
 
             ModpackVersion modpackVersion = modpack.CreateVersionFromMods(modpackMods, manifestDto.GameVersion, modLoader);
