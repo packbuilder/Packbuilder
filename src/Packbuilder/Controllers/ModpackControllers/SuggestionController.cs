@@ -25,7 +25,7 @@ namespace Packbuilder.Controllers.ModpackControllers
         [EndpointName("GetSuggestion")]
         public async Task<ActionResult<SuggestionDto>> GetSuggestion([FromRoute] int modpackId, [FromRoute] int id)
         {
-            Suggestion? suggestion = await context.Suggestions.Include(s => s.User).Include(s => s.Modifications).ThenInclude(m => m.Mod).SingleOrDefaultAsync(s => s.ModpackId == modpackId && s.Id == id);
+            Suggestion? suggestion = await context.Suggestions.Include(s => s.User).Include(s => s.Modpack).Include(s => s.Modifications).ThenInclude(m => m.Mod).SingleOrDefaultAsync(s => s.ModpackId == modpackId && s.Id == id);
 
             if (suggestion is null)
             {
@@ -42,7 +42,7 @@ namespace Packbuilder.Controllers.ModpackControllers
         [EndpointName("GetModpackSuggestions")]
         public async Task<ActionResult<List<SuggestionDto>>> GetModpackSuggestions([FromRoute] int modpackId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchQuery = "", [FromQuery] string? filter = null)
         {
-            IQueryable<Suggestion> query = context.Suggestions.Include(s => s.User)
+            IQueryable<Suggestion> query = context.Suggestions.Include(s => s.User).Include(s => s.Modpack)
                 .Include(s => s.Modifications)
                     .ThenInclude(m => m.Mod)
                         .Where(s => s.ModpackId == modpackId && EF.Functions.ILike(s.User.Name, $"%{searchQuery}%"));
@@ -69,7 +69,7 @@ namespace Packbuilder.Controllers.ModpackControllers
         [EndpointName("GetUserSuggestions")]
         public async Task<ActionResult<List<SuggestionDto>>> GetUserSuggestions([FromRoute] int userId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchQuery = "", [FromQuery] string? filter = null)
         {
-            IQueryable<Suggestion> query = context.Suggestions.Include(s => s.User).Include(s => s.Modifications).ThenInclude(m => m.Mod).Where(s => s.User.Id == userId && EF.Functions.ILike(s.User.Name, $"%{searchQuery}%"));
+            IQueryable<Suggestion> query = context.Suggestions.Include(s => s.User).Include(s => s.Modpack).Include(s => s.Modifications).ThenInclude(m => m.Mod).Where(s => s.User.Id == userId && EF.Functions.ILike(s.User.Name, $"%{searchQuery}%"));
 
             if(Enum.TryParse<SuggestionState>(filter, out var suggestionState) && Enum.IsDefined(suggestionState))
             {

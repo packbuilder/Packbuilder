@@ -165,7 +165,7 @@ namespace Packbuilder.Services
             List<string> modificationReferenceIds = modifications
                 .Select(m => m.Mod.ReferenceId).ToList();
             
-            List<ExternalModSummary> modSummaries = await externalModService.GetExternalModsAsync(ModPlatform.CurseForge, [..modpackReferenceIds, ..modificationReferenceIds]);
+            List<ExternalModSummary> modSummaries = await externalModService.GetExternalModsAsync(ModPlatform.CurseForge, [.. modpackReferenceIds.Concat(modificationReferenceIds).Distinct()]);
 
             Dictionary<string, ExternalModSummary> modSummaryDictionary = modSummaries.ToDictionary(m => m.ReferenceId);
 

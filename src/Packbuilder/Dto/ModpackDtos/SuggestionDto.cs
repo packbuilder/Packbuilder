@@ -8,7 +8,7 @@ namespace Packbuilder.Dto.ModpackDtos
 {
     public class SuggestionDto : SuggestionPartialDto
     {
-        [JsonPropertyName("modpack")] public virtual ModpackDto? ModpackDto { get; set; } = null!;
+        [JsonPropertyName("modpack")] public virtual ModpackDto ModpackDto { get; set; } = null!;
         [JsonPropertyName("user")] public virtual User User { get; set; } = null!;
         [JsonPropertyName("modifications")] public ICollection<ModificationDto> ModificationDtos { get; set; } = [];
 
@@ -26,10 +26,7 @@ namespace Packbuilder.Dto.ModpackDtos
             VersionIteration = suggestion.VersionIteration;
             Memo = suggestion.Memo;
 
-            if(suggestion.Modpack is not null)
-            {    
-                ModpackDto = new ModpackDto(suggestion.Modpack);
-            }
+            ModpackDto = new ModpackDto(suggestion.Modpack);
             
             ModificationDtos = [.. suggestion.Modifications.Select(m => new ModificationDto(m))];
         }
