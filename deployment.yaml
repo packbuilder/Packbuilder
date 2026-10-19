@@ -206,3 +206,24 @@ spec:
     - port: 80
       targetPort: 80
   type: ClusterIP
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: packbuilder-mod-name-backfill
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: backfill
+          image: ghcr.io/packbuilder/goob-hub/packbuilder:latest
+          command:
+            - dotnet
+            - Packbuilder.dll
+          args:
+            - backfill-mod-names
+          envFrom:
+            - secretRef:
+                name: packbuilder-secrets
