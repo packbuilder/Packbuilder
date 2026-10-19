@@ -68,5 +68,6 @@ jobs:
           context: .
           file: Dockerfile.migrations
           push: true
-          tags: ghcr.io/packbuilder/goob-hub/packbuilder-migrations:latest 
-          # Tag like this later if more migrations are performed ghcr.io/packbuilder/goob-hub/packbuilder-migrations:${{ github.sha }}
+          tags: |
+            ghcr.io/packbuilder/goob-hub/packbuilder-migrations:latest
+            ghcr.io/packbuilder/goob-hub/packbuilder-migrations:${{ github.sha }}
