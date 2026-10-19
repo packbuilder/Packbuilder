@@ -25,7 +25,7 @@ using Packbuilder.Middleware;
 [assembly: InternalsVisibleTo("Packbuilder.Tests")]
 
 var builder = WebApplication.CreateBuilder(args);
-var curseForgeApiKey = builder.Configuration["Curseforge:ApiKey"];
+var curseForgeApiKey = builder.Configuration["CurseForge:ApiKey"];
 
 #region Services
 builder.Configuration.AddEnvironmentVariables();
