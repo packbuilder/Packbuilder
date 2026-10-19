@@ -4,6 +4,7 @@ using Packbuilder.Dto;
 using Packbuilder.Dto.Create;
 using Packbuilder.Dto.Update;
 using Packbuilder.Models;
+using Packbuilder.Models.enums;
 
 namespace Packbuilder.Interfaces
 {

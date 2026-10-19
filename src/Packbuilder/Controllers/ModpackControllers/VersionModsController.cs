@@ -24,13 +24,19 @@ namespace Packbuilder.Controllers.ModpackControllers
                 return NotFound();
             }
             
-            IQueryable<VersionMod> query = context.VersionMods.Where(v => v.VersionIteration == iteration && v.ModpackId == curModpack.Id && v.Mod.Name.Contains(searchQuery)).Include(v => v.Mod);
+            IQueryable<VersionMod> query = context.VersionMods.Include(v => v.Mod)
+                .Where(v => v.VersionIteration == iteration && v.ModpackId == curModpack.Id && EF.Functions.ILike(v.Mod.Name, $"%{searchQuery}%"));
 
             PaginatedResponse<VersionMod> paginatedResponse = await paginationService.GetPaginatedData(query, page, pageSize); 
 
-            List<VersionModDto> versionModDtos = [.. paginatedResponse.Items.Select(v => new VersionModDto(v))];
-
-            return Ok();
+            return Ok(new PaginatedResponse<VersionModDto>()
+            {
+                Items = [.. paginatedResponse.Items.Select(v => new VersionModDto(v))],
+                Page = paginatedResponse.Page,
+                TotalItems = paginatedResponse.TotalItems,
+                TotalPages = paginatedResponse.TotalPages,
+                PageSize = paginatedResponse.PageSize
+            });
         }
     }
 }

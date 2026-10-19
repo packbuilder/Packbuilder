@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using Packbuilder.Models;
+using Packbuilder.Models.enums;
 
 namespace Packbuilder.Dto.ModpackDtos
 {
@@ -19,6 +20,7 @@ namespace Packbuilder.Dto.ModpackDtos
             User = modpack.User;
             ImageType = modpack.ImageType;
             ImageValue = modpack.ImageValue;
+            Game = modpack.Game;
             Versions = [.. modpack.Versions.Select(v => new VersionDto(v))];
         }
     }

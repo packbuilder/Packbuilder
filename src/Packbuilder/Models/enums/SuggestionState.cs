@@ -2,9 +2,9 @@ namespace Packbuilder.Models.enums
 {
     public enum SuggestionState
     {
-        Unverified,
-        Verified,
-        VerificationPending,
-        MergePending
+        Unverified = 0,
+        Verified = 1,
+        VerificationPending = 2,
+        MergePending = 3 
     } 
 }

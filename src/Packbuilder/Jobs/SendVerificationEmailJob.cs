@@ -48,19 +48,26 @@ public class SendVerificationEmailJob(IConnectionMultiplexer redis, IServiceScop
         bool acquired = await db.StringSetAsync(lockKey, "1", LockTtl, when: When.NotExists);
 
         if (!acquired)
+        {
+            Console.WriteLine("-----------------------");
+            Console.WriteLine($"Already aquired key for user Id {userId}, will not run job to send email for verification.");
+            Console.WriteLine("-----------------------");
             return; 
-        
-        using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
-        IEmailService emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
-        ITokenService tokenService = scope.ServiceProvider.GetRequiredService<ITokenService>();
-        IUserService userService = scope.ServiceProvider.GetRequiredService<IUserService>();
-        ICacheService cacheService = scope.ServiceProvider.GetRequiredService<ICacheService>();
-
-        UserDto? user = await userService.GetUserById(userId) ?? throw new Exception("Unable to find user.");
-        string rawVerificationCode = await cacheService.SetEmailVerificationToken(userId);
+        }
 
         try
         {   
+            using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
+
+            IEmailService emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+            ITokenService tokenService = scope.ServiceProvider.GetRequiredService<ITokenService>();
+            IUserService userService = scope.ServiceProvider.GetRequiredService<IUserService>();
+            ICacheService cacheService = scope.ServiceProvider.GetRequiredService<ICacheService>();
+
+            UserDto? user = await userService.GetUserById(userId) ?? throw new Exception("Unable to find user.");
+
+            string rawVerificationCode = await cacheService.SetEmailVerificationToken(userId);
+
             await emailService.SendVerificationEmail(user.Email, rawVerificationCode, userId);
         }
         catch (Exception exception)

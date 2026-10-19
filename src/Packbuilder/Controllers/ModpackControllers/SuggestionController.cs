@@ -1,3 +1,4 @@
+using System.Data;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,14 +18,14 @@ namespace Packbuilder.Controllers.ModpackControllers
 {
     [ApiController]
     [Route("modpacks/{modpackId}/suggestions")]
-    public class SuggestionController(PackbuilderContext context, ISuggestionService suggestionService, IConnectionMultiplexer redis, IEventDispatcher eventDispatcher) : ControllerBase
+    public class SuggestionController(PackbuilderContext context, ISuggestionService suggestionService, IConnectionMultiplexer redis, IEventDispatcher eventDispatcher, IPaginationService paginationService) : ControllerBase
     {
         [RateLimit(RateLimitBuckets.ModpackRead)]
         [HttpGet("{id:int}")]
         [EndpointName("GetSuggestion")]
         public async Task<ActionResult<SuggestionDto>> GetSuggestion([FromRoute] int modpackId, [FromRoute] int id)
         {
-            Suggestion? suggestion = await context.Suggestions.Include(s => s.User).Include(s => s.Modifications).ThenInclude(m => m.Mod).SingleOrDefaultAsync(s => s.ModpackId == modpackId && s.Id == id);
+            Suggestion? suggestion = await context.Suggestions.Include(s => s.User).Include(s => s.Modpack).Include(s => s.Modifications).ThenInclude(m => m.Mod).SingleOrDefaultAsync(s => s.ModpackId == modpackId && s.Id == id);
 
             if (suggestion is null)
             {
@@ -39,35 +40,52 @@ namespace Packbuilder.Controllers.ModpackControllers
         [RateLimit(RateLimitBuckets.ModpackRead)]
         [HttpGet]
         [EndpointName("GetModpackSuggestions")]
-        public async Task<ActionResult<List<SuggestionDto>>> GetModpackSuggestions([FromRoute] int modpackId)
+        public async Task<ActionResult<List<SuggestionDto>>> GetModpackSuggestions([FromRoute] int modpackId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchQuery = "", [FromQuery] string? filter = null)
         {
-            List<Suggestion>? suggestions = await context.Suggestions.Include(s => s.User).Include(s => s.Modifications).ThenInclude(m => m.Mod).Where(s => s.ModpackId == modpackId).ToListAsync();
+            IQueryable<Suggestion> query = context.Suggestions.Include(s => s.User).Include(s => s.Modpack)
+                .Include(s => s.Modifications)
+                    .ThenInclude(m => m.Mod)
+                        .Where(s => s.ModpackId == modpackId && EF.Functions.ILike(s.User.Name, $"%{searchQuery}%"));
 
-            if (suggestions is null)
+            if(Enum.TryParse<SuggestionState>(filter, out var suggestionState) && Enum.IsDefined(suggestionState))
             {
-                return NotFound();
+                query = query.Where(s => s.State == suggestionState);
             }
 
-            List<SuggestionDto> suggestionDtos = suggestions.Select(suggestion => new SuggestionDto(suggestion)).ToList();
-            
-            return Ok(suggestionDtos);
+            PaginatedResponse<Suggestion> paginatedResponse = await paginationService.GetPaginatedData(query, page, pageSize);
+
+            return Ok(new PaginatedResponse<SuggestionDto>()
+            {
+                Items = [.. paginatedResponse.Items.Select(s => new SuggestionDto(s))],
+                Page = paginatedResponse.Page,
+                TotalItems = paginatedResponse.TotalItems,
+                TotalPages = paginatedResponse.TotalPages,
+                PageSize = paginatedResponse.PageSize
+            });
         }
 
         [RateLimit(RateLimitBuckets.ModpackRead)]
         [HttpGet("/user/{userId:int}/suggestions")]
         [EndpointName("GetUserSuggestions")]
-        public async Task<ActionResult<List<SuggestionDto>>> GetUserSuggestions([FromRoute] int userId)
+        public async Task<ActionResult<List<SuggestionDto>>> GetUserSuggestions([FromRoute] int userId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchQuery = "", [FromQuery] string? filter = null)
         {
-            List<Suggestion>? suggestions = await context.Suggestions.Include(s => s.User).Include(s => s.Modpack).Include(s => s.Modifications).ThenInclude(m => m.Mod).Where(s => s.UserId == userId).ToListAsync();
+            IQueryable<Suggestion> query = context.Suggestions.Include(s => s.User).Include(s => s.Modpack).Include(s => s.Modifications).ThenInclude(m => m.Mod).Where(s => s.User.Id == userId && EF.Functions.ILike(s.User.Name, $"%{searchQuery}%"));
 
-            if (suggestions is null)
+            if(Enum.TryParse<SuggestionState>(filter, out var suggestionState) && Enum.IsDefined(suggestionState))
             {
-                return NotFound();
+                query = query.Where(s => s.State == suggestionState);
             }
 
-            List<SuggestionDto> suggestionDtos = suggestions.Select(suggestion => new SuggestionDto(suggestion)).ToList();
-            
-            return Ok(suggestionDtos);
+            PaginatedResponse<Suggestion> paginatedResponse = await paginationService.GetPaginatedData(query, page, pageSize);
+
+            return Ok(new PaginatedResponse<SuggestionDto>()
+            {
+                Items = [.. paginatedResponse.Items.Select(s => new SuggestionDto(s))],
+                Page = paginatedResponse.Page,
+                TotalItems = paginatedResponse.TotalItems,
+                TotalPages = paginatedResponse.TotalPages,
+                PageSize = paginatedResponse.PageSize
+            });
         }
 
         [RateLimit(RateLimitBuckets.ModpackWrite)]

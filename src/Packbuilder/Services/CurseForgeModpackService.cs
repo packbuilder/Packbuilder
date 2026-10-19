@@ -12,7 +12,7 @@ namespace Packbuilder.Services
 {
     public class CurseForgeModpackService(PackbuilderContext context, ICurseForgeManifestService curseForgeManifestService, IModService modService) : ICurseForgeModpackService
     {
-        public async Task ImportCurseForgeModpackAsync(CurseForgeManifestDto manifestDto, List<ExternalModSummary> modSummaries, int userId, AvatarDto body)
+        public async Task ImportMinecraftModpackAsync(CurseForgeManifestDto manifestDto, List<ExternalModSummary> modSummaries, int userId, AvatarDto body)
         {
             User user = await context.Users.SingleOrDefaultAsync(u => u.Id == userId) ?? throw new Exception("Could not import modpack because user does not exist");
 
@@ -23,7 +23,7 @@ namespace Packbuilder.Services
                 throw new Exception("This manifest is not using a supported mod loader");
             }
 
-            Modpack modpack = Modpack.CreateModpack(manifestDto.Name, user, body.ImageType, body.ImageValue);
+            Modpack modpack = Modpack.CreateModpack(manifestDto.Name, user, body.ImageType, body.ImageValue, Game.Minecraft);
 
             context.Modpacks.Add(modpack);
 
@@ -32,6 +32,7 @@ namespace Packbuilder.Services
             foreach (ExternalModSummary modSummary in modSummaries)
             {
                 Mod mod = await modService.GetOrCreateModAsync(modSummary);
+                modpackMods.Add(mod);
             }
 
             ModpackVersion modpackVersion = modpack.CreateVersionFromMods(modpackMods, manifestDto.GameVersion, modLoader);
@@ -48,7 +49,7 @@ namespace Packbuilder.Services
             return;
         }
 
-        public async Task<MemoryStream> GetCurseForgeModpackManifest(int modpackId, float versionIteration)
+        public async Task<MemoryStream> CreateMinecraftModpackManifest(int modpackId, float versionIteration)
         {
             Modpack? modpack = await context.Modpacks
                 .Include(m => m.User).Include(m => m.Versions.Where(v => v.Iteration == versionIteration))

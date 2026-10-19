@@ -67,6 +67,11 @@ namespace Packbuilder.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
                     b.Property<int>("Platform")
                         .HasColumnType("integer")
                         .HasColumnName("platform");
@@ -142,6 +147,10 @@ namespace Packbuilder.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<int>("Game")
+                        .HasColumnType("integer")
+                        .HasColumnName("game");
 
                     b.Property<int>("ImageType")
                         .HasColumnType("integer")

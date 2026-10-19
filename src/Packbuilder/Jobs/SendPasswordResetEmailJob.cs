@@ -14,12 +14,16 @@ public class SendPasswordResetEmailJob(IConnectionMultiplexer redis, IServiceSco
     {
         _channel = await redis.GetSubscriber().SubscribeAsync(ChannelName);
 
-        _channel.OnMessage(message =>
+        _channel.OnMessage(async message =>
         {
-            _ = Task.Run(async () =>
+            try
             {
                 await HandleMessageAsync(message);
-            });
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         });
     }
 
@@ -39,19 +43,26 @@ public class SendPasswordResetEmailJob(IConnectionMultiplexer redis, IServiceSco
         bool acquired = await db.StringSetAsync(lockKey, "1", LockTtl, when: When.NotExists);
 
         if (!acquired)
+        {
+            Console.WriteLine("-----------------------");
+            Console.WriteLine($"Already aquired key for user Id {userId}, will not run job to send password reset email.");
+            Console.WriteLine("-----------------------");
             return; 
-        
-        using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
-        IEmailService emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
-        ITokenService tokenService = scope.ServiceProvider.GetRequiredService<ITokenService>();
-        IUserService userService = scope.ServiceProvider.GetRequiredService<IUserService>();
-        ICacheService cacheService = scope.ServiceProvider.GetRequiredService<ICacheService>();
-
-        UserDto? user = await userService.GetUserById(userId) ?? throw new Exception("Unable to find user.");
-        string rawToken = await cacheService.SetPasswordResetToken(userId);
+        }
 
         try
         {   
+            using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
+
+            IEmailService emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+            ITokenService tokenService = scope.ServiceProvider.GetRequiredService<ITokenService>();
+            IUserService userService = scope.ServiceProvider.GetRequiredService<IUserService>();
+            ICacheService cacheService = scope.ServiceProvider.GetRequiredService<ICacheService>();
+
+            UserDto? user = await userService.GetUserById(userId) ?? throw new Exception("Unable to find user.");
+
+            string rawToken = await cacheService.SetPasswordResetToken(userId);
+
             await emailService.SendPasswordResetEmail(user.Email, rawToken, userId);
         }
         catch (Exception exception)

@@ -1,4 +1,3 @@
-using CurseForge.Dtos.CurseForgeApiDtos;
 using Microsoft.EntityFrameworkCore;
 using Packbuilder.Dto.Create;
 using Packbuilder.Interfaces;
@@ -12,9 +11,14 @@ namespace Packbuilder.Services
         public async Task CreateModificationAsync(CreateModificationDto dto, int suggestionId)
         {
             Suggestion? suggestion = await context.Suggestions
-                .Include(s => s.Modifications)
+                .Include(s => s.Modpack).Include(s => s.Modifications)
                     .ThenInclude(m => m.Mod).SingleOrDefaultAsync(s => s.Id == suggestionId)
                         ?? throw new Exception($"Modification could not be created because suggestion with id {suggestionId} doesn't exist");
+            
+            if(!GamePlatformSupport.IsSupported(suggestion.Modpack.Game, dto.ModPlatform))
+            {
+                throw new Exception($"Could not create modification. Game {suggestion.Modpack.Game} is not supported under the platform {dto.ModPlatform}");
+            }
 
             ExternalModSummary externalModSummary = await externalModService.GetExternalModAsync(dto.ModPlatform, dto.ModReferenceId);
 
@@ -40,13 +44,21 @@ namespace Packbuilder.Services
 
         public async Task CreateModificationsAsync(List<CreateModificationDto> dtos, int suggestionId)
         {
-            Suggestion? suggestion = await context.Suggestions.SingleOrDefaultAsync(s => s.Id == suggestionId)  
+            Suggestion? suggestion = await context.Suggestions
+                .Include(s => s.Modpack).Include(s => s.Modifications)
+                    .ThenInclude(m => m.Mod).SingleOrDefaultAsync(s => s.Id == suggestionId)  
                 ?? throw new Exception($"Modification could not be created because suggestion with id {suggestionId} doesn't exist");
+            
 
             List<string> modReferenceIds = dtos.Select(m => m.ModReferenceId).ToList();
-
+            // All mods in the array should be of the same platform
             ModPlatform modPlatform = dtos[0].ModPlatform;
             
+            if(!GamePlatformSupport.IsSupported(suggestion.Modpack.Game, modPlatform))
+            {
+                throw new Exception($"Could not create modifications. Game {suggestion.Modpack.Game} is not supported under the platform {modPlatform}");
+            }
+
             List<ExternalModSummary> externalModSummaries = await externalModService.GetExternalModsAsync(modPlatform, modReferenceIds);
 
             Dictionary<string, ExternalModSummary> modsByReferenceId = externalModSummaries.ToDictionary(m => m.ReferenceId);
@@ -56,6 +68,13 @@ namespace Packbuilder.Services
                 ExternalModSummary modSummary = modsByReferenceId[dto.ModReferenceId];
 
                 Mod mod = await modService.GetOrCreateModAsync(modSummary);
+
+                Modification? existingModification = suggestion.Modifications.FirstOrDefault(m => m.Mod.ReferenceId == mod.ReferenceId);
+
+                if(existingModification is not null)
+                {
+                    throw new Exception($"Could not add modification for mod {mod.ReferenceId} because there is already a modification for it.");
+                }
                
                 Modification modification = suggestion.CreateModification(mod, dto.ModAction);
 

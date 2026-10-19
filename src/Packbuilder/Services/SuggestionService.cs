@@ -14,7 +14,7 @@ namespace Packbuilder.Services
     {
         public async Task<SuggestionDto?> GetSuggestionById(int suggestionId)
         {
-            Suggestion? suggestion = await context.Suggestions.Include(s => s.User).SingleOrDefaultAsync(s => s.Id == suggestionId) ?? throw new Exception($"Suggestion with id {suggestionId} not found");
+            Suggestion? suggestion = await context.Suggestions.Include(s => s.User).Include(s => s.Modpack).SingleOrDefaultAsync(s => s.Id == suggestionId) ?? throw new Exception($"Suggestion with id {suggestionId} not found");
 
             return new(suggestion);
         }
@@ -134,6 +134,7 @@ namespace Packbuilder.Services
         // TODO: Refactor all functions below this comment. Perhaps create verification service because of specified work?
         public async Task<int> VerifyMinecraftSuggestionAsync(int suggestionId) {
             Suggestion? suggestion = await context.Suggestions
+                .Include(s => s.User)
                 .Include(s => s.Modpack)
                     .ThenInclude(m => m.Versions
                         .OrderByDescending(v => v.Iteration)
@@ -165,9 +166,13 @@ namespace Packbuilder.Services
             List<string> modificationReferenceIds = modifications
                 .Select(m => m.Mod.ReferenceId).ToList();
             
-            List<ExternalModSummary> modSummaries = await externalModService.GetExternalModsAsync(ModPlatform.CurseForge, [..modpackReferenceIds, ..modificationReferenceIds]);
+            List<ExternalModSummary> modSummaries = await externalModService.GetExternalModsAsync(ModPlatform.CurseForge, [.. modpackReferenceIds.Concat(modificationReferenceIds).Distinct()]);
 
             Dictionary<string, ExternalModSummary> modSummaryDictionary = modSummaries.ToDictionary(m => m.ReferenceId);
+
+            Console.WriteLine("-----------------------");
+            Console.WriteLine("Checking compatibility....");
+            Console.WriteLine("-----------------------");
 
             ModCompatibilityResultDto? modificationsCompatibilityResult = await curseForgeService
                 .CheckModCompatibility(suggestion.GameVersion, minecraftModLoader, modificationReferenceIds) 
@@ -181,6 +186,10 @@ namespace Packbuilder.Services
                     (m.ModAction == ModAction.Removed && !modpackReferenceIds.Contains(m.Mod.ReferenceId)) ||
                     (m.ModAction == ModAction.Added && modpackReferenceIds.Contains(m.Mod.ReferenceId))
                 ).ToList();
+            
+            Console.WriteLine("-----------------------");
+            Console.WriteLine("Resolving......");
+            Console.WriteLine("-----------------------");
 
             await ResolveMissingDependenciesAsync(suggestion, minecraftModLoader, modificationsCompatibilityResult.CompatibleMods.ToList(), modpackReferenceIds, modSummaryDictionary);
             
@@ -192,6 +201,10 @@ namespace Packbuilder.Services
             {
                 context.Modifications.Remove(modification);
             }
+
+            Console.WriteLine("-----------------------");
+            Console.WriteLine("Updating state...");
+            Console.WriteLine("-----------------------");
 
             suggestion.State = SuggestionState.Verified;
             suggestion.VersionId = latestVersion.Id;
