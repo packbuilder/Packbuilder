@@ -1,0 +1,31 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: packbuilder-migrations
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 600
+  ttlSecondsAfterFinished: 3600
+
+  template:
+    spec:
+      restartPolicy: Never
+
+      containers:
+        - name: migrations
+          image: ghcr.io/packbuilder/goob-hub/packbuilder-migrations:latest
+          imagePullPolicy: IfNotPresent
+
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+
+            - name: DB_CONNECTION_STRING
+              valueFrom:
+                name: packbuilder-config
+                key: DB__ConnectionString
+
+          args:
+            - "--connection"
+            - "$(DB_CONNECTION_STRING)"

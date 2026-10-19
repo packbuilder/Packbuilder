@@ -1,0 +1,10 @@
+
+FROM debian:bookworm-slim
+
+WORKDIR /app
+
+COPY artifacts/efbundle /app/efbundle
+
+RUN chmod +x /app/efbundle
+
+ENTRYPOINT ["/app/efbundle"]
