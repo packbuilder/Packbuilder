@@ -179,7 +179,7 @@ builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSet
 
 builder.Services.AddSingleton(new CurseForgeApiOptions {
     ApiKey = curseForgeApiKey!,
-    BaseUrl = builder.Configuration["Curseforge:BaseUrl"] ?? throw new Exception("Must set curseforge api url")
+    BaseUrl = builder.Configuration["CurseForge:BaseUrl"] ?? throw new Exception("Must set curseforge api url")
 });
 
 builder.Services.AddSingleton<IConnectionMultiplexer>((_) => {
