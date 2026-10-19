@@ -11,6 +11,8 @@ spec:
   template:
     spec:
       restartPolicy: Never
+      imagePullSecrets:
+        - name: ghcr-secret
 
       containers:
         - name: migrations
@@ -23,8 +25,9 @@ spec:
 
             - name: DB_CONNECTION_STRING
               valueFrom:
-                name: packbuilder-config
-                key: DB__ConnectionString
+                secretKeyRef:
+                  name: packbuilder-config
+                  key: DB__ConnectionString
 
           args:
             - "--connection"
