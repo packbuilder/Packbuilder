@@ -7,7 +7,7 @@ namespace Packbuilder.Tests.Factories;
 
 public class ModpackFactory
 {
-    public Modpack CreateModpack(User user)
+    public Modpack CreateModpack(User user, Game game)
     {
         Faker faker = new();
         string name = NameFactory.Create();
@@ -18,7 +18,8 @@ public class ModpackFactory
                 .RuleFor(m => m.UserId, (f, m) => user.Id)
                 .RuleFor(m => m.User, (f, m) => user)
                 .RuleFor(m => m.ImageType, (f, m) => ImageType.Stock)
-                .RuleFor(m => m.ImageValue, (f, m) => "modpack_avatar_1.gif");
+                .RuleFor(m => m.ImageValue, (f, m) => "modpack_avatar_1.gif")
+                .RuleFor(m => m.Game, (f, m) => game);
 
         return modpack;
     }

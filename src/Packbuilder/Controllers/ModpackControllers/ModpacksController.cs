@@ -1,8 +1,6 @@
 using System.Security.Claims;
-using CurseForge.Dtos.CurseForgeApiDtos;
 using CurseForge.Dtos.ManifestDtos;
 using CurseForge.Interfaces;
-using CurseForge.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +18,7 @@ namespace Packbuilder.Controllers.ModpackControllers
 {
     [ApiController]
     [Route("/modpacks")]
-    public class ModpacksController(PackbuilderContext context, IModpackService modpackService, ICurseForgeManifestService curseForgeManifestService, IExternalModService externalModService, ICurseForgeModpackService curseForgeModpackService, IPaginationService paginationService) : ControllerBase
+    public class ModpacksController(PackbuilderContext context, IModpackService modpackService, ICurseForgeManifestService curseForgeManifestService, IExternalModService externalModService, ICurseForgeModpackService curseForgeModpackService, IPaginationService paginationService, ISessionService sessionService) : ControllerBase
     {
         [RateLimit(RateLimitBuckets.ModpackRead)]
         [HttpGet("/user-modpacks/{userId:int}")]
@@ -84,14 +82,19 @@ namespace Packbuilder.Controllers.ModpackControllers
         [EndpointName("CreateModpack")]
         public async Task<ActionResult> PostModpack([FromBody] CreateModpackDto body)
         {
-            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            User? curUser = await sessionService.GetCurrentUser();
+
+            if(curUser is null)
+            {
+                return Unauthorized();
+            }
 
             if(body.Name is null || body.Name.Length == 0)
             {
                 return BadRequest();
             }
 
-            await modpackService.CreateModpackAsync(body, userId);
+            await modpackService.CreateModpackAsync(body, curUser.Id);
             
             return Created();
         }
@@ -103,7 +106,12 @@ namespace Packbuilder.Controllers.ModpackControllers
         [EndpointName("ImportCurseForgeModpack")]
         public async Task<ActionResult> ImportCurseforgeModpack([FromForm] ImportModpackDto body)
         {
-            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);            
+            User? curUser = await sessionService.GetCurrentUser();
+
+            if(curUser is null) 
+            {
+                return Unauthorized();
+            }            
 
             CurseForgeManifestDto manifestDto = await curseForgeManifestService.ParseManifestFile(body.File);
 
@@ -111,7 +119,7 @@ namespace Packbuilder.Controllers.ModpackControllers
 
             List<ExternalModSummary> modSummaries = await externalModService.GetExternalModsAsync(ModPlatform.CurseForge,modReferenceIds);
 
-            await curseForgeModpackService.ImportMinecraftModpackAsync(manifestDto, modSummaries, userId, body.AvatarDto);
+            await curseForgeModpackService.ImportMinecraftModpackAsync(manifestDto, modSummaries, curUser.Id, body.AvatarDto);
 
             return Created();
         }
@@ -122,10 +130,15 @@ namespace Packbuilder.Controllers.ModpackControllers
         [EndpointName("UpdateModpack")]
         public async Task<ActionResult> UpdateModpack([FromRoute] int modpackId, [FromBody] UpdateModpackDto body)
         {
-            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            User? curUser = await sessionService.GetCurrentUser();
+
+            if(curUser is null) 
+            {
+                return Unauthorized();
+            }
 
             Modpack? modpack = await context.Modpacks.SingleOrDefaultAsync(m => m.Id == modpackId
-            && m.UserId == userId);
+            && m.UserId == curUser.Id);
 
             if (modpack is null)
             {
@@ -143,9 +156,14 @@ namespace Packbuilder.Controllers.ModpackControllers
         [EndpointName("DeleteModpack")]
         public async Task<ActionResult> DeleteModpack([FromRoute]int modpackId)
         {
-            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            User? curUser = await sessionService.GetCurrentUser();
 
-            Modpack? modpack = await context.Modpacks.Include(m => m.User).SingleOrDefaultAsync(m => m.Id == modpackId && m.UserId == userId);
+            if(curUser is null) 
+            {
+                return Unauthorized();
+            }
+
+            Modpack? modpack = await context.Modpacks.Include(m => m.User).SingleOrDefaultAsync(m => m.Id == modpackId && m.UserId == curUser.Id);
             
             if (modpack is null)
             {

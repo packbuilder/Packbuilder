@@ -1,12 +1,14 @@
 using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using Bogus;
 using CurseForge.Dtos.CurseForgeApiDtos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NuGet.ContentModel;
+using Packbuilder.Dto;
 using Packbuilder.Dto.Create;
 using Packbuilder.Dto.Update;
 using Packbuilder.Models;
@@ -32,7 +34,7 @@ public class ModpackTest : ApplicationTests
         var userFactory = Services.GetRequiredService<UserFactory>();
 
         (User user, string password) = userFactory.CreateUser(true);
-        Modpack modpack = modpackFactory.CreateModpack(user);
+        Modpack modpack = modpackFactory.CreateModpack(user, Game.Minecraft);
 
         modpack.Slug = Modpack.GenerateSlug(modpack.Name);
 
@@ -54,7 +56,7 @@ public class ModpackTest : ApplicationTests
         var userFactory = Services.GetRequiredService<UserFactory>();
 
         (User user, string password) = userFactory.CreateUser(true);
-        Modpack modpack = modpackFactory.CreateModpack(user);
+        Modpack modpack = modpackFactory.CreateModpack(user, Game.Minecraft);
 
         modpack.Slug = Modpack.GenerateSlug(modpack.Name);
 
@@ -67,6 +69,7 @@ public class ModpackTest : ApplicationTests
 
         Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
     }
+
     [TestMethod]
     public async Task CreateModpackTest()
     {
@@ -86,7 +89,8 @@ public class ModpackTest : ApplicationTests
             GameVersion = "1.20",
             ModLoader = ModLoader.Forge,
             ImageType = ImageType.Stock,
-            ImageValue = "avatar_1.jpg"
+            ImageValue = "avatar_1.jpg",
+            Game = Game.Minecraft
         });
         HttpResponseMessage res = await client.PostAsync($"/modpacks", data);
 
@@ -101,7 +105,7 @@ public class ModpackTest : ApplicationTests
         Faker faker = new();
 
         (User user, string password) = userFactory.CreateUser(true);
-        Modpack modpack = modpackFactory.CreateModpack(user);
+        Modpack modpack = modpackFactory.CreateModpack(user, Game.Minecraft);
 
         modpack.Slug = Modpack.GenerateSlug(modpack.Name);
 
@@ -138,7 +142,7 @@ public class ModpackTest : ApplicationTests
         var userFactory = Services.GetRequiredService<UserFactory>();
 
         (User user, string password) = userFactory.CreateUser(true);
-        Modpack modpack = modpackFactory.CreateModpack(user);
+        Modpack modpack = modpackFactory.CreateModpack(user, Game.Minecraft);
 
         modpack.Slug = Modpack.GenerateSlug(modpack.Name);
 
@@ -161,6 +165,48 @@ public class ModpackTest : ApplicationTests
     // TODO: Create test for importing modpack
 
     [TestMethod]
+    public async Task ImportMinecraftModpackTest()
+    {
+        var context = Services.GetRequiredService<PackbuilderContext>();
+        var userFactory = Services.GetRequiredService<UserFactory>();
+
+        (User user, string password) = userFactory.CreateUser(true);
+
+        context.Users.Add(user);
+        await context.SaveChangesAsync();
+
+        HttpClient client = await CreateSessionClient(user, password);
+
+        string manifestPath = Path.Combine(AppContext.BaseDirectory, "TestFiles", "manifest.json");
+        
+        await using FileStream fileStream = File.OpenRead(manifestPath);
+        using MultipartFormDataContent multipartContent = new();
+        using StreamContent streamContent = new(fileStream);
+
+        streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+        
+        AvatarDto avatarDto = new()
+        {
+            ImageType = ImageType.Stock,
+            ImageValue = "modpack_avatar_1.gif"
+        };
+        string avatarJson = JsonSerializer.Serialize(avatarDto);
+
+        multipartContent.Add(streamContent, "file", "manifest.json");
+        multipartContent.Add(new StringContent(avatarJson, Encoding.UTF8, "application/json"), "AvatarDto");
+
+        HttpResponseMessage res = await client.PostAsync("/modpacks/import/curseforge", multipartContent);
+
+        Assert.AreEqual(HttpStatusCode.Created, res.StatusCode);
+
+        var scope = Services.CreateScope();
+        var secondContext = scope.ServiceProvider.GetRequiredService<PackbuilderContext>();
+        Modpack? importedModpack = await secondContext.Modpacks.SingleOrDefaultAsync(m => m.UserId == user.Id);
+
+        Assert.IsNotNull(importedModpack);
+    }
+
+    [TestMethod]
     public async Task DownloadModpackManifestTest()
     {
         var context = Services.GetRequiredService<PackbuilderContext>();
@@ -169,7 +215,7 @@ public class ModpackTest : ApplicationTests
         var modFactory = Services.GetRequiredService<ModFactory>();
 
         (User user, string password) = userFactory.CreateUser(true);
-        Modpack modpack = modpackFactory.CreateModpack(user);
+        Modpack modpack = modpackFactory.CreateModpack(user, Game.Minecraft);
         Mod mod = modFactory.CreateMod();
         ModpackVersion modpackVersion = modpack.CreateVersionFromMods([mod], "1.20", ModLoader.Forge);
 
