@@ -1,0 +1,34 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: packbuilder-migrations
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 600
+  ttlSecondsAfterFinished: 3600
+
+  template:
+    spec:
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: ghcr-secret
+
+      containers:
+        - name: migrations
+          image: ghcr.io/packbuilder/goob-hub/packbuilder-migrations:latest
+          imagePullPolicy: Always
+
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+
+            - name: DB_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: packbuilder-config
+                  key: DB__ConnectionString
+
+          args:
+            - "--connection"
+            - "$(DB_CONNECTION_STRING)"

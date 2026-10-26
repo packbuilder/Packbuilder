@@ -15,6 +15,22 @@ namespace Packbuilder.Controllers
     [Route("curseforge")]
     public class CurseForgeApiController(ICurseForgeApiService curseForgeApiService, ICacheService cacheService, ICurseForgeModService curseForgeModService) : ControllerBase
     {
+
+        [RateLimit(RateLimitBuckets.Curseforge)]
+        [HttpPost]
+        [EndpointName("GetModsCurseForge")]
+        public async Task<ActionResult<List<CurseForgeMod>?>> GetMods([FromBody] List<string> modIds)
+        {
+            if(modIds.Count <= 0)
+            {
+                return BadRequest([]);
+            }
+
+            List<CurseForgeMod> curseForgeMods = await curseForgeModService.GetModsWithCacheAsync(modIds);
+
+            return Ok(curseForgeMods);
+        }
+
         [RateLimit(RateLimitBuckets.Curseforge)]
         [HttpGet("{referenceId}")]
         [EndpointName("GetMod")]
@@ -78,21 +94,6 @@ namespace Packbuilder.Controllers
             }
 
             return Ok(minecraftVersions);
-        }
-
-        [RateLimit(RateLimitBuckets.Curseforge)]
-        [HttpPost]
-        [EndpointName("GetModsCurseForge")]
-        public async Task<ActionResult<List<CurseForgeMod>?>> GetMods([FromBody] List<string> modIds)
-        {
-            if(modIds.Count <= 0)
-            {
-                return BadRequest([]);
-            }
-
-            List<CurseForgeMod> curseForgeMods = await curseForgeModService.GetModsWithCacheAsync(modIds);
-
-            return Ok(curseForgeMods);
         }
     }
 }

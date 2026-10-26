@@ -1,0 +1,24 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: packbuilder-mod-name-backfill
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: backfill
+          image: ghcr.io/packbuilder/goob-hub/packbuilder:latest
+          imagePullPolicy: Always
+          command:
+            - dotnet
+            - Packbuilder.dll
+          args:
+            - backfill-mod-names
+          envFrom:
+            - secretRef:
+                name: packbuilder-config

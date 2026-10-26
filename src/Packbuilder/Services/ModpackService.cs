@@ -1,9 +1,4 @@
-using CurseForge.Dtos.CurseForgeApiDtos;
-using CurseForge.Dtos.ManifestDtos;
-using CurseForge.enums;
-using CurseForge.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Packbuilder.Dto;
 using Packbuilder.Dto.Create;
 using Packbuilder.Dto.Update;
 using Packbuilder.Interfaces;
@@ -24,7 +19,8 @@ namespace Packbuilder.Services
 
             if(userModpacks.Find(m => m.Name == body.Name) is not null) throw new Exception($"This user has already made a modpack with the name {body.Name}");
 
-            Modpack modpack = Modpack.CreateModpack(body.Name, user, body.ImageType, body.ImageValue);
+            Modpack modpack = Modpack.CreateModpack(body.Name, user, body.ImageType, body.ImageValue, body.Game);
+
             ModpackVersion modpackVersion = modpack.CreateVersionFromMods([], body.GameVersion, body.ModLoader); 
 
             context.Modpacks.Add(modpack);

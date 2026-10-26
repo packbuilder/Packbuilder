@@ -1,9 +1,7 @@
 using Packbuilder.Dto.ModpackDtos;
 using Packbuilder.Events;
 using Packbuilder.Interfaces;
-using Packbuilder.Models;
 using Packbuilder.Models.enums;
-using Packbuilder.Services;
 using StackExchange.Redis;
 
 namespace Packbuilder.Jobs;
@@ -18,9 +16,16 @@ public class MergeSuggestionJob(IConnectionMultiplexer redis, IServiceScopeFacto
     {
         _channel = await redis.GetSubscriber().SubscribeAsync(ChannelName);
 
-        _channel.OnMessage(message =>
+        _channel.OnMessage(async message =>
         {
-            _ = HandleMessageAsync(message);
+            try
+            {
+                await HandleMessageAsync(message);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         });
     }
 
@@ -40,24 +45,34 @@ public class MergeSuggestionJob(IConnectionMultiplexer redis, IServiceScopeFacto
         bool acquired = await redis.GetDatabase().StringSetAsync(lockKey, "1", LockTtl, when: When.NotExists);
 
         if (!acquired)
+        {
+            Console.WriteLine("-----------------------");
+            Console.WriteLine($"Already aquired key for suggestion Id {suggestionId}, will not run job to merge suggestion");
+            Console.WriteLine("-----------------------");
             return; 
-        
-        using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
-        IVersionService versionService = scope.ServiceProvider.GetRequiredService<IVersionService>();
-        ISuggestionService suggestionService = scope.ServiceProvider.GetRequiredService<ISuggestionService>();
-
-        SuggestionDto? suggestionDto = await suggestionService.GetSuggestionById(suggestionId) ?? throw new Exception($"Suggestion with id {suggestionId} does not exist");
+        }
 
         try
         {
+            using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
+            IVersionService versionService = scope.ServiceProvider.GetRequiredService<IVersionService>();
+            ISuggestionService suggestionService = scope.ServiceProvider.GetRequiredService<ISuggestionService>();
+
+            SuggestionDto? suggestionDto = await suggestionService.GetSuggestionById(suggestionId) ?? throw new Exception($"Suggestion with id {suggestionId} does not exist");
+
             await versionService.MergeSuggestionAsync(suggestionId);
             await eventDispatcher.PublishAsync<ModpackUpdatedEvent>(new(suggestionDto.ModpackId));
             await eventDispatcher.PublishAsync<SuggestionUpdatedEvent>(new(suggestionDto.ModpackId, suggestionId)); 
         }
         catch (Exception exception)
         {
+            using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
+            ISuggestionService suggestionService = scope.ServiceProvider.GetRequiredService<ISuggestionService>();
+
             await suggestionService.UpdateSuggestionState(suggestionId, SuggestionState.Verified);
+
             Console.WriteLine(exception.Message);
+            
             throw;
         }
         finally

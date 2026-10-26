@@ -25,7 +25,7 @@ using Packbuilder.Middleware;
 [assembly: InternalsVisibleTo("Packbuilder.Tests")]
 
 var builder = WebApplication.CreateBuilder(args);
-var curseForgeApiKey = builder.Configuration["Curseforge:ApiKey"];
+var curseForgeApiKey = builder.Configuration["CurseForge:ApiKey"];
 
 #region Services
 builder.Configuration.AddEnvironmentVariables();
@@ -44,6 +44,7 @@ builder.Services.AddTransient<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddTransient<ISessionService, SessionService>();
 builder.Services.AddTransient<IVersionService, VersionService>();
 builder.Services.AddTransient<IExternalModService, ExternalModService>();
+builder.Services.AddTransient<IPaginationService, PaginationService>();
 builder.Services.AddTransient<ICurseForgeModService, CurseForgeModService>();
 builder.Services.AddTransient<ICurseForgeModpackService, CurseForgeModpackService>();
 builder.Services.AddTransient<IVersionModService, VersionModService>();
@@ -67,6 +68,7 @@ builder.Services.AddScoped<ICurseForgeManifestService, CurseForgeManifestService
 builder.Services.AddScoped<ICurseForgeService, CurseForgeService>();
 builder.Services.AddScoped<ICurseForgeApiService, CurseForgeApiService>();
 builder.Services.AddScoped<IAuthorizationHandler, EmailVerifiedHandler>();
+builder.Services.AddScoped<ModNameBackfill>();
 builder.Services.AddScoped<RateLimitMiddleware>();
 builder.Services.AddHttpClient<IEmailService, BrevoEmailService>();
 builder.Services.AddHttpContextAccessor();
@@ -177,7 +179,7 @@ builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSet
 
 builder.Services.AddSingleton(new CurseForgeApiOptions {
     ApiKey = curseForgeApiKey!,
-    BaseUrl = builder.Configuration["Curseforge:BaseUrl"] ?? throw new Exception("Must set curseforge api url")
+    BaseUrl = builder.Configuration["CurseForge:BaseUrl"] ?? throw new Exception("Must set curseforge api url")
 });
 
 builder.Services.AddSingleton<IConnectionMultiplexer>((_) => {
@@ -186,9 +188,21 @@ builder.Services.AddSingleton<IConnectionMultiplexer>((_) => {
 );
 
 #endregion
-
+#region Build
 
 var app = builder.Build();
+
+if(args.Contains("backfill-mod-names"))
+{
+    using var scope = app.Services.CreateScope();
+
+    var backfill = scope.ServiceProvider
+        .GetRequiredService<ModNameBackfill>();
+
+    await backfill.ExecuteAsync();
+
+    return;
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -220,3 +234,5 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
+#endregion

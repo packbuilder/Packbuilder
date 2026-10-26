@@ -148,6 +148,10 @@ namespace Packbuilder.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<int>("Game")
+                        .HasColumnType("integer")
+                        .HasColumnName("game");
+
                     b.Property<int>("ImageType")
                         .HasColumnType("integer")
                         .HasColumnName("image_type");

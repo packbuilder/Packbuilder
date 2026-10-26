@@ -6,8 +6,8 @@ namespace Packbuilder.Interfaces
 {
     public interface ICurseForgeModpackService
     {
-        public Task ImportCurseForgeModpackAsync(CurseForgeManifestDto manifestDto, List<ExternalModSummary> modSummaries , int userId, AvatarDto body);
+        public Task ImportMinecraftModpackAsync(CurseForgeManifestDto manifestDto, List<ExternalModSummary> modSummaries , int userId, AvatarDto body);
 
-        public Task<MemoryStream> GetCurseForgeModpackManifest(int modpackId, float versionIteration);
+        public Task<MemoryStream> CreateMinecraftModpackManifest(int modpackId, float versionIteration);
     }
 }
