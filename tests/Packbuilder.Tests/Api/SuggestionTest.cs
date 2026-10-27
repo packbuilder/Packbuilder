@@ -30,7 +30,7 @@ public class SuggestionTest : ApplicationTests
         var userFactory = Services.GetRequiredService<UserFactory>();
 
         (User user, string password) = userFactory.CreateUser(true);
-        Modpack modpack = modpackFactory.CreateModpack(user);
+        Modpack modpack = modpackFactory.CreateModpack(user, Game.Minecraft);
         Mod mod = modFactory.CreateMod();
         List<Mod> mods = [mod];
         ModpackVersion modpackVersion = modpack.CreateVersionFromMods(mods, "1.20", ModLoader.Forge);
@@ -60,7 +60,7 @@ public class SuggestionTest : ApplicationTests
         var modFactory = Services.GetRequiredService<ModFactory>();
 
         (User user, string password) = userFactory.CreateUser(true);
-        Modpack modpack = modpackFactory.CreateModpack(user);
+        Modpack modpack = modpackFactory.CreateModpack(user, Game.Minecraft);
         Mod mod = modFactory.CreateMod();
         List<Mod> mods = [mod];
 
@@ -97,7 +97,7 @@ public class SuggestionTest : ApplicationTests
         Faker faker = new();
 
         (User user, string password) = userFactory.CreateUser(true);
-        Modpack modpack = modpackFactory.CreateModpack(user);
+        Modpack modpack = modpackFactory.CreateModpack(user, Game.Minecraft);
         Mod mod = modFactory.CreateMod();
         List<Mod> mods = [mod];
         ModpackVersion version = modpack.CreateVersionFromMods(mods, "1.20", ModLoader.Forge);
@@ -132,6 +132,7 @@ public class SuggestionTest : ApplicationTests
         Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
         Assert.AreNotEqual(suggestion.Memo, updatedSuggestion.Memo);
     }
+    
     [TestMethod]
     public async Task DeleteSuggestionsTest()
     {
@@ -142,7 +143,7 @@ public class SuggestionTest : ApplicationTests
         var suggestionFactory = Services.GetRequiredService<SuggestionFactory>();
 
         (User user, string password) = userFactory.CreateUser(true);
-        Modpack modpack = modpackFactory.CreateModpack(user);
+        Modpack modpack = modpackFactory.CreateModpack(user, Game.Minecraft);
         Mod mod = modFactory.CreateMod();
         List<Mod> mods = [mod];
         ModpackVersion version = modpack.CreateVersionFromMods(mods, "1.20", ModLoader.Forge);

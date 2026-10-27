@@ -30,8 +30,8 @@ public class VersionTest() : ApplicationTests
         var modFactory = Services.GetRequiredService<ModFactory>();
         var userFactory = Services.GetRequiredService<UserFactory>();
 
-        (User user, string password) = userFactory.CreateUser();
-        Modpack modpack = modpackFactory.CreateModpack(user);
+        (User user, string password) = userFactory.CreateUser(true);
+        Modpack modpack = modpackFactory.CreateModpack(user, Game.Minecraft);
         List<Mod> mods = [];
 
         for (int i = 0; i < 3; i++)
@@ -66,8 +66,8 @@ public class VersionTest() : ApplicationTests
         var suggestionFactory = Services.GetRequiredService<SuggestionFactory>();
         var userFactory = Services.GetRequiredService<UserFactory>();
 
-        (User user, string password) = userFactory.CreateUser();
-        Modpack modpack = modpackFactory.CreateModpack(user);
+        (User user, string password) = userFactory.CreateUser(true);
+        Modpack modpack = modpackFactory.CreateModpack(user, Game.Minecraft);
         Mod mod = modFactory.CreateMod();
         List<Mod> mods = [mod];
         ModpackVersion version = modpack.CreateVersionFromMods(mods, "1.20", ModLoader.Forge);

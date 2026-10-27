@@ -7,6 +7,8 @@ using Bogus;
 using System.Net.Http.Json;
 using Packbuilder.Dto.Update;
 using Microsoft.EntityFrameworkCore;
+using Packbuilder.Models.enums;
+using Microsoft.EntityFrameworkCore.Update.Internal;
 
 namespace Packbuilder.Tests.Api;
 
@@ -25,7 +27,7 @@ public class UserTest : ApplicationTests
         var userFactory = Services.GetRequiredService<UserFactory>();
         var context = Services.GetRequiredService<PackbuilderContext>();
 
-        (User user, string password) = userFactory.CreateUser();
+        (User user, string password) = userFactory.CreateUser(true);
         context.Users.Add(user);
         await context.SaveChangesAsync();
         HttpClient client = await CreateSessionClient(user, password);
@@ -37,15 +39,17 @@ public class UserTest : ApplicationTests
     [TestMethod]
     public async Task CreateUserTest() {
         Faker faker = new();
-        PackbuilderWebApplicationFactory application = new();
+        PackbuilderWebApplicationFactory application = new(TestConnectionString);
         HttpClient client = application.CreateClient();
-        JsonContent data = JsonContent.Create(new CreateUserDto
+        
+        HttpResponseMessage res = await client.PostAsJsonAsync("/users", new CreateUserDto
         {
             Name = faker.Name.FirstName(),
             Email = faker.Internet.Email(),
-            Password = faker.Internet.Password()
+            Password = faker.Internet.Password(),
+            ImageType = ImageType.Stock,
+            ImageValue = "profile_avatar_1.jpg"
         });
-        HttpResponseMessage res = await client.PostAsync("/users", data);
 
         Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
     }
@@ -57,19 +61,19 @@ public class UserTest : ApplicationTests
         var context = Services.GetRequiredService<PackbuilderContext>();
 
         Faker faker = new();
-        (User user, string password) = userFactory.CreateUser();
+        (User user, string password) = userFactory.CreateUser(true);
         context.Users.Add(user);
         await context.SaveChangesAsync();
 
         UpdateUserDto updateUserDto = new()
         {
             Name = faker.Name.FirstName(),
-            Password = faker.Internet.Password()
+            ImageValue = "profile_avatar_2.jpg",
+            ImageType = ImageType.Stock
         };
 
         HttpClient client = await CreateSessionClient(user, password);
-        JsonContent data = JsonContent.Create(updateUserDto);
-        HttpResponseMessage res = await client.PutAsync($"/users/{user.Name}", data);
+        HttpResponseMessage res = await client.PutAsJsonAsync($"/users/{user.Name}", updateUserDto);
 
         var scope = Services.CreateScope();
         var secondContext = scope.ServiceProvider.GetRequiredService<PackbuilderContext>();
@@ -78,9 +82,7 @@ public class UserTest : ApplicationTests
         Assert.IsNotNull(updatedUser);
         Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
         Assert.AreNotEqual(user.Name, updatedUser.Name);
-        Assert.AreNotEqual(user.Email, updatedUser.Email);
-        Assert.AreNotEqual(user.PasswordDigest, updatedUser.PasswordDigest);
-        
+        Assert.AreNotEqual(user.ImageValue, updatedUser.ImageValue);
     }
 
     [TestMethod]
@@ -88,7 +90,7 @@ public class UserTest : ApplicationTests
         var userFactory = Services.GetRequiredService<UserFactory>();
         var context = Services.GetRequiredService<PackbuilderContext>();
 
-        (User user, string password) = userFactory.CreateUser();
+        (User user, string password) = userFactory.CreateUser(true);
         context.Users.Add(user);
         await context.SaveChangesAsync();
 
@@ -102,4 +104,6 @@ public class UserTest : ApplicationTests
         Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
         Assert.IsNull(deletedUser);
     }
+
+    // TODO: Add tests for updating password/email as the requirements and systems in place for doing so have changed.
 }

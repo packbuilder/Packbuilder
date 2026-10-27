@@ -11,11 +11,12 @@ public class ModFactory
         Faker faker = new();
         string name = NameFactory.Create();
 
-        ModPlatform platform = ModPlatform.Thunderstore;
+        ModPlatform platform = ModPlatform.CurseForge;
 
         Mod mod = new Faker<Mod>()
                 .RuleFor(m => m.Platform, (f, m) => platform)
-                .RuleFor(m => m.ReferenceId, (f, m) => $"thunderstore{name}");
+                .RuleFor(m => m.Name, (f, m) => name)
+                .RuleFor(m => m.ReferenceId, (f, m) => $"curseForge{name}");
 
         return mod;
     }

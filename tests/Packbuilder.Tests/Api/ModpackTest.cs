@@ -83,7 +83,7 @@ public class ModpackTest : ApplicationTests
 
         Faker faker = new();
         HttpClient client = await CreateSessionClient(user, password);
-        JsonContent data = JsonContent.Create(new CreateModpackDto
+        HttpResponseMessage res = await client.PostAsJsonAsync($"/modpacks", new CreateModpackDto
         {
             Name = faker.Name.FirstName(),
             GameVersion = "1.20",
@@ -92,7 +92,6 @@ public class ModpackTest : ApplicationTests
             ImageValue = "avatar_1.jpg",
             Game = Game.Minecraft
         });
-        HttpResponseMessage res = await client.PostAsync($"/modpacks", data);
 
         Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
     }
@@ -120,10 +119,8 @@ public class ModpackTest : ApplicationTests
             ImageValue = "modpack_avatar_2.gif"
         };
 
-        JsonContent data = JsonContent.Create(updateModpackDto);
-
         HttpClient client = await CreateSessionClient(user, password);
-        HttpResponseMessage res = await client.PutAsync($"/modpacks/{modpack.Id}", data);
+        HttpResponseMessage res = await client.PutAsJsonAsync($"/modpacks/{modpack.Id}", updateModpackDto);
 
         var scope = Services.CreateScope();
         var secondContext = scope.ServiceProvider.GetRequiredService<PackbuilderContext>();

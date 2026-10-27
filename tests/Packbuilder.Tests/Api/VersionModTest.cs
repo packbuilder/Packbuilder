@@ -27,8 +27,8 @@ public class VersionModTest() : ApplicationTests
         var modFactory = Services.GetRequiredService<ModFactory>();
         var userFactory = Services.GetRequiredService<UserFactory>();
 
-        (User user, string password) = userFactory.CreateUser();
-        Modpack modpack = modpackFactory.CreateModpack(user);
+        (User user, string password) = userFactory.CreateUser(true);
+        Modpack modpack = modpackFactory.CreateModpack(user, Game.Minecraft);
         List<Mod> mods = [];
 
         for (int i = 0; i < 3; i++)
