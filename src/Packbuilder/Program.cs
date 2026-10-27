@@ -21,11 +21,13 @@ using Microsoft.AspNetCore.Authorization;
 using Packbuilder.Policys;
 using Packbuilder.Config;
 using Packbuilder.Middleware;
+using Microsoft.VisualBasic;
 
 [assembly: InternalsVisibleTo("Packbuilder.Tests")]
 
 var builder = WebApplication.CreateBuilder(args);
 var curseForgeApiKey = builder.Configuration["CurseForge:ApiKey"];
+var jwtKey = builder.Configuration["Jwt:Key"];
 
 #region Services
 builder.Configuration.AddEnvironmentVariables();
