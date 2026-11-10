@@ -80,11 +80,22 @@ namespace Packbuilder.Tests
                 HandleCookies = true
             });
 
-            await client.PostAsJsonAsync("/sessions/login", new CreateSessionDto()
+            HttpResponseMessage res = await client.PostAsJsonAsync("/sessions", new CreateSessionDto()
             {
                 Email = user.Email,
                 Password = password
             });
+
+            if(!res.IsSuccessStatusCode)
+            {
+
+                string responseBody = await res.Content.ReadAsStringAsync();
+
+                Console.WriteLine($"Status: {res.StatusCode}");
+                Console.WriteLine($"Response: {responseBody}");
+
+                throw new Exception("Could not create session client.");
+            }
 
             return client;
         }

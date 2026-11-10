@@ -159,8 +159,6 @@ public class ModpackTest : ApplicationTests
         Assert.IsNull(deletedModpack);
     }
 
-    // TODO: Create test for importing modpack
-
     [TestMethod]
     public async Task ImportMinecraftModpackTest()
     {

@@ -27,7 +27,7 @@ using Microsoft.VisualBasic;
 
 var builder = WebApplication.CreateBuilder(args);
 var curseForgeApiKey = builder.Configuration["CurseForge:ApiKey"];
-var jwtKey = builder.Configuration["Jwt:Key"];
+var curseForgeApiUrl = builder.Configuration["CurseForge:BaseUrl"];
 
 #region Services
 builder.Configuration.AddEnvironmentVariables();
@@ -86,7 +86,7 @@ builder.Services.AddHttpLogging();
 
 builder.Services.AddSingleton<JwtOptions>(pp =>
 {
-    return builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;
+    return builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? throw new Exception("Jwt options not set in user secrets.");
 });
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -140,9 +140,17 @@ builder.Services.AddAuthorizationBuilder()
 
 builder.Services.AddDbContext<PackbuilderContext>(opt =>
 {
-    DbOptions options = builder.Configuration.GetSection("DB").Get<DbOptions>()!;
+    DbOptions options = builder.Configuration.GetSection("DB").Get<DbOptions>() ?? throw new Exception("Db options not set in user secrets.");
     PasswordHasher<User> passwordHasher = new();
-    opt.UseNpgsql(options.ConnectionString);
+
+    if(!builder.Environment.IsEnvironment("Testing"))
+    {
+        opt.UseNpgsql(options.ConnectionString);
+    } else
+    {
+        opt.UseNpgsql(options.TestConnectionString);
+    }
+    
     opt.UseAsyncSeeding(async (context, _, _) =>
     {
         SeedService seedService = new((context as PackbuilderContext)!, passwordHasher);
@@ -179,13 +187,12 @@ builder.Services.AddCors(options =>
 builder.Services.Configure<BrevoSettings>(builder.Configuration.GetSection("Brevo"));
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 
-builder.Services.AddSingleton(new CurseForgeApiOptions {
-    ApiKey = curseForgeApiKey!,
-    BaseUrl = builder.Configuration["CurseForge:BaseUrl"] ?? throw new Exception("Must set curseforge api url")
+builder.Services.AddSingleton<CurseForgeApiOptions>(pp => {
+    return builder.Configuration.GetSection("CurseForge").Get<CurseForgeApiOptions>() ?? throw new Exception("Could not find curseforge user secrets.");
 });
 
 builder.Services.AddSingleton<IConnectionMultiplexer>((_) => {
-        return ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!);
+        return ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis") ?? throw new Exception("Could not find redis section in user secrets."));
     }
 );
 
@@ -229,8 +236,9 @@ app.MapControllers();
 
 app.MapHub<ModpackHub>("/hubs/modpacks");
 
-using (var scope = app.Services.CreateScope())
+if (!app.Environment.IsEnvironment("Testing"))
 {
+    using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<PackbuilderContext>();
     context.Database.Migrate();
 }

@@ -7,12 +7,16 @@ internal class PackbuilderWebApplicationFactory(string testConnectionString) : W
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {   
+        builder.UseEnvironment("Testing");
+
+    
         builder.ConfigureAppConfiguration((_, configuration) =>
         {
+            configuration.AddUserSecrets<Program>();
             configuration.AddInMemoryCollection(
                 new Dictionary<string, string?>
                 {
-                    ["Db:ConnectionString"] = testConnectionString
+                    ["DB:TestConnectionString"] = testConnectionString
                 });
         });
 
