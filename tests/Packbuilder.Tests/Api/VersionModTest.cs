@@ -33,7 +33,7 @@ public class VersionModTest() : ApplicationTests
 
         for (int i = 0; i < 3; i++)
         {
-            Mod newMod = modFactory.CreateMod();
+            Mod newMod = modFactory.CreateFakeMod();
             mods.Add(newMod);
             ModpackVersion version = modpack.CreateVersionFromMods(mods, "1.20", ModLoader.Forge);
 

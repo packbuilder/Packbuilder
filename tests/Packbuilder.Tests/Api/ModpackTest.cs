@@ -7,7 +7,6 @@ using Bogus;
 using CurseForge.Dtos.CurseForgeApiDtos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using NuGet.ContentModel;
 using Packbuilder.Dto;
 using Packbuilder.Dto.Create;
 using Packbuilder.Dto.Update;
@@ -83,6 +82,7 @@ public class ModpackTest : ApplicationTests
 
         Faker faker = new();
         HttpClient client = await CreateSessionClient(user, password);
+
         HttpResponseMessage res = await client.PostAsJsonAsync($"/modpacks", new CreateModpackDto
         {
             Name = faker.Name.FirstName(),
@@ -159,6 +159,8 @@ public class ModpackTest : ApplicationTests
         Assert.IsNull(deletedModpack);
     }
 
+    // TODO: Create test for importing modpack
+
     [TestMethod]
     public async Task ImportMinecraftModpackTest()
     {
@@ -207,12 +209,16 @@ public class ModpackTest : ApplicationTests
         var context = Services.GetRequiredService<PackbuilderContext>();
         var modpackFactory = Services.GetRequiredService<ModpackFactory>();
         var userFactory = Services.GetRequiredService<UserFactory>();
-        var modFactory = Services.GetRequiredService<ModFactory>();
 
         (User user, string password) = userFactory.CreateUser(true);
         Modpack modpack = modpackFactory.CreateModpack(user, Game.Minecraft);
-        Mod mod = modFactory.CreateMod();
-        ModpackVersion modpackVersion = modpack.CreateVersionFromMods([mod], "1.20", ModLoader.Forge);
+        Mod mod = new()
+        {
+            ReferenceId = "807653",
+            Platform = ModPlatform.CurseForge,
+            Name = "Curseforge mod"  
+        };
+        ModpackVersion modpackVersion = modpack.CreateVersionFromMods([mod], "1.20.1", ModLoader.Fabric);
 
         modpack.Slug = Modpack.GenerateSlug(modpack.Name);
 

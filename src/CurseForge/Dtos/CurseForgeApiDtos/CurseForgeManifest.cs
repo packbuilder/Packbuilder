@@ -1,15 +1,15 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
+using CurseForge.Dtos.CurseForgeApiDtos;
 using Packbuilder.Dto.CurseForgeDtos;
 
+
 namespace CurseForge.Dtos.CurseForgeApiDtos
-{
+{   
     public class CurseForgeManifest
     {
         [JsonPropertyName("name")]
         public required string Name { get; set; }
-        [JsonPropertyName("minecraft")]
-        public required MinecraftInfoDto MinecraftInfo { get; set; }
         [JsonPropertyName("manifestType")]
         public required string ManifestType { get; set; }
         [JsonPropertyName("manifestVersion")]
@@ -22,6 +22,12 @@ namespace CurseForge.Dtos.CurseForgeApiDtos
         public required string Overrides { get; set; }
         [JsonPropertyName("files")]
         public required List<CurseForgeManifestMod> ModFiles { get; set; }
+        [JsonPropertyName("minecraft")]
+        public required MinecraftInfoDto MinecraftInfo { get; set; }
+
+        // This is here in order for this object to be re-built from JSON format.
+        [JsonConstructor]
+        public CurseForgeManifest() {}
 
         [SetsRequiredMembers]
         public CurseForgeManifest(string modpackName, string minecraftVersion, ModLoaderManifest modLoaderManifest, string modpackVersion, string ownerUsername, List<CurseForgeManifestMod> manifestModDtos)

@@ -36,7 +36,7 @@ public class VersionTest() : ApplicationTests
 
         for (int i = 0; i < 3; i++)
         {
-            Mod newMod = modFactory.CreateMod();
+            Mod newMod = modFactory.CreateFakeMod();
             mods.Add(newMod);
             ModpackVersion version = modpack.CreateVersionFromMods(mods, "1.20", ModLoader.Forge);
             context.Versions.Add(version);
@@ -68,14 +68,14 @@ public class VersionTest() : ApplicationTests
 
         (User user, string password) = userFactory.CreateUser(true);
         Modpack modpack = modpackFactory.CreateModpack(user, Game.Minecraft);
-        Mod mod = modFactory.CreateMod();
+        Mod mod = modFactory.CreateFakeMod();
         List<Mod> mods = [mod];
         ModpackVersion version = modpack.CreateVersionFromMods(mods, "1.20", ModLoader.Forge);
         Suggestion suggestion = suggestionFactory.CreateSuggestion(user, modpack, version);
 
         for (int i = 0; i < 3; i++)
         {
-            Mod newMod = modFactory.CreateMod();
+            Mod newMod = modFactory.CreateFakeMod();
             context.Mods.Add(newMod);
         }
 

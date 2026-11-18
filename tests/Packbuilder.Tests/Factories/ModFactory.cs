@@ -1,4 +1,5 @@
 using Bogus;
+using CurseForge.Dtos.CurseForgeApiDtos;
 using Packbuilder.Models;
 using Packbuilder.Models.enums;
 
@@ -6,7 +7,7 @@ namespace Packbuilder.Tests.Factories;
 
 public class ModFactory
 {
-    public Mod CreateMod()
+    public Mod CreateFakeMod()
     {
         Faker faker = new();
         string name = NameFactory.Create();

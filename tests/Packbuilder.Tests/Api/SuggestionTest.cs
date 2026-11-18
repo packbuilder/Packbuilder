@@ -31,7 +31,7 @@ public class SuggestionTest : ApplicationTests
 
         (User user, string password) = userFactory.CreateUser(true);
         Modpack modpack = modpackFactory.CreateModpack(user, Game.Minecraft);
-        Mod mod = modFactory.CreateMod();
+        Mod mod = modFactory.CreateFakeMod();
         List<Mod> mods = [mod];
         ModpackVersion modpackVersion = modpack.CreateVersionFromMods(mods, "1.20", ModLoader.Forge);
         Suggestion suggestion = suggestionFactory.CreateSuggestion(user, modpack, modpackVersion);
@@ -61,7 +61,7 @@ public class SuggestionTest : ApplicationTests
 
         (User user, string password) = userFactory.CreateUser(true);
         Modpack modpack = modpackFactory.CreateModpack(user, Game.Minecraft);
-        Mod mod = modFactory.CreateMod();
+        Mod mod = modFactory.CreateFakeMod();
         List<Mod> mods = [mod];
 
         modpack.Slug = Modpack.GenerateSlug(modpack.Name);
@@ -98,7 +98,7 @@ public class SuggestionTest : ApplicationTests
 
         (User user, string password) = userFactory.CreateUser(true);
         Modpack modpack = modpackFactory.CreateModpack(user, Game.Minecraft);
-        Mod mod = modFactory.CreateMod();
+        Mod mod = modFactory.CreateFakeMod();
         List<Mod> mods = [mod];
         ModpackVersion version = modpack.CreateVersionFromMods(mods, "1.20", ModLoader.Forge);
         Suggestion suggestion = suggestionFactory.CreateSuggestion(user, modpack, version);
@@ -144,7 +144,7 @@ public class SuggestionTest : ApplicationTests
 
         (User user, string password) = userFactory.CreateUser(true);
         Modpack modpack = modpackFactory.CreateModpack(user, Game.Minecraft);
-        Mod mod = modFactory.CreateMod();
+        Mod mod = modFactory.CreateFakeMod();
         List<Mod> mods = [mod];
         ModpackVersion version = modpack.CreateVersionFromMods(mods, "1.20", ModLoader.Forge);
         Suggestion suggestion = suggestionFactory.CreateSuggestion(user, modpack, version);
