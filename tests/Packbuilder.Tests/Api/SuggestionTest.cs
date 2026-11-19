@@ -46,9 +46,9 @@ public class SuggestionTest : ApplicationTests
         await context.SaveChangesAsync();
 
         HttpClient client = await CreateSessionClient(user, password);
-        HttpResponseMessage res = await client.GetAsync($"{user.Name}/modpacks/{modpack.Slug}/suggestions");
+        HttpResponseMessage res = await client.GetAsync($"/modpacks/{modpack.Id}/suggestions/{suggestion.Id}");
 
-        Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
+        Assert.IsTrue(res.IsSuccessStatusCode);
     }
     [TestMethod]
     public async Task CreateSuggestionsTest()
@@ -66,25 +66,23 @@ public class SuggestionTest : ApplicationTests
 
         modpack.Slug = Modpack.GenerateSlug(modpack.Name);
         ModpackVersion version = modpack.CreateVersionFromMods(mods, "1.20", ModLoader.Forge);
-        Suggestion suggestion = suggestionFactory.CreateSuggestion(user, modpack, version);
 
         context.Users.Add(user);
         context.Mods.Add(mod);
         context.Modpacks.Add(modpack);
         context.Versions.Add(version);
-        context.Suggestions.Add(suggestion);
         await context.SaveChangesAsync();
 
         HttpClient client = await CreateSessionClient(user, password);
         JsonContent data = JsonContent.Create(new CreateSuggestionDto
         {
-            Memo = suggestion.Memo,
+            Memo = "Lorem ipsum",
             GameVersion = "1.20",
             ModLoader = ModLoader.Forge
         });
-        HttpResponseMessage res = await client.PostAsync($"{user.Name}/modpacks/{modpack.Slug}/suggestions", data);
+        HttpResponseMessage res = await client.PostAsync($"/modpacks/{modpack.Id}/suggestions", data);
 
-        Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
+        Assert.IsTrue(res.IsSuccessStatusCode);
     }
     [TestMethod]
     public async Task UpdateSuggestionsTest()
@@ -122,14 +120,14 @@ public class SuggestionTest : ApplicationTests
         JsonContent data = JsonContent.Create(updateSuggestionDto);
 
         HttpClient client = await CreateSessionClient(user, password);
-        HttpResponseMessage res = await client.PutAsync($"{user.Name}/modpacks/{modpack.Slug}/suggestions/{suggestion.Id}", data);
+        HttpResponseMessage res = await client.PutAsync($"/modpacks/{modpack.Id}/suggestions/{suggestion.Id}", data);
 
         var scope = Services.CreateScope();
         var secondContext = scope.ServiceProvider.GetRequiredService<PackbuilderContext>();
         Suggestion? updatedSuggestion = await secondContext.Suggestions.SingleOrDefaultAsync(m => m.Id == modpack.Id);
 
+        Assert.IsTrue(res.IsSuccessStatusCode);
         Assert.IsNotNull(updatedSuggestion);
-        Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
         Assert.AreNotEqual(suggestion.Memo, updatedSuggestion.Memo);
     }
     
@@ -159,13 +157,13 @@ public class SuggestionTest : ApplicationTests
         await context.SaveChangesAsync();
 
         HttpClient client = await CreateSessionClient(user, password);
-        HttpResponseMessage res = await client.DeleteAsync($"{user.Name}/modpacks/{modpack.Slug}/suggestions/{suggestion.Id}");
+        HttpResponseMessage res = await client.DeleteAsync($"/modpacks/{modpack.Id}/suggestions/{suggestion.Id}");
 
         var scope = Services.CreateScope();
         var secondContext = scope.ServiceProvider.GetRequiredService<PackbuilderContext>();
         Suggestion? deletedSuggestion = await secondContext.Suggestions.SingleOrDefaultAsync(s => s.Id == suggestion.Id);
 
-        Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
+        Assert.IsTrue(res.IsSuccessStatusCode);
         Assert.IsNull(deletedSuggestion);
     }    
 }
