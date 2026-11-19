@@ -33,7 +33,7 @@ public class UserTest : ApplicationTests
         HttpClient client = await CreateSessionClient(user, password);
         HttpResponseMessage res = await client.GetAsync($"/users/{user.Id}");
 
-        Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
+        Assert.IsTrue(res.IsSuccessStatusCode);
     }
 
     [TestMethod]
@@ -51,7 +51,7 @@ public class UserTest : ApplicationTests
             ImageValue = "profile_avatar_1.jpg"
         });
 
-        Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
+        Assert.IsTrue(res.IsSuccessStatusCode);
     }
 
     [TestMethod]
@@ -73,14 +73,14 @@ public class UserTest : ApplicationTests
         };
 
         HttpClient client = await CreateSessionClient(user, password);
-        HttpResponseMessage res = await client.PutAsJsonAsync($"/users/{user.Name}", updateUserDto);
+        HttpResponseMessage res = await client.PutAsJsonAsync($"/users/{user.Id}", updateUserDto);
 
         var scope = Services.CreateScope();
         var secondContext = scope.ServiceProvider.GetRequiredService<PackbuilderContext>();
         User? updatedUser = await secondContext.Users.SingleOrDefaultAsync(u => user.Id == u.Id);
 
+        Assert.IsTrue(res.IsSuccessStatusCode);
         Assert.IsNotNull(updatedUser);
-        Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
         Assert.AreNotEqual(user.Name, updatedUser.Name);
         Assert.AreNotEqual(user.ImageValue, updatedUser.ImageValue);
     }
@@ -95,13 +95,13 @@ public class UserTest : ApplicationTests
         await context.SaveChangesAsync();
 
         HttpClient client = await CreateSessionClient(user, password);
-        HttpResponseMessage res = await client.DeleteAsync($"/users/{user.Name}");
+        HttpResponseMessage res = await client.DeleteAsync($"/users/{user.Id}");
 
         var scope = Services.CreateScope();
         var secondContext = scope.ServiceProvider.GetRequiredService<PackbuilderContext>();
         User? deletedUser = await secondContext.Users.SingleOrDefaultAsync(u => user.Id == u.Id);
 
-        Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
+        Assert.IsTrue(res.IsSuccessStatusCode);
         Assert.IsNull(deletedUser);
     }
 

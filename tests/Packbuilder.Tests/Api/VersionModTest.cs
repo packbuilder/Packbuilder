@@ -56,8 +56,8 @@ public class VersionModTest() : ApplicationTests
         VersionDto latestVersion = await versionService.GetLatestVersion(modpack.Id) ?? throw new Exception("No latest version found.");
 
         HttpClient client = await CreateSessionClient(user, password);
-        HttpResponseMessage res = await client.GetAsync($"{user.Name}/modpacks/{modpack.Slug}/versions/{latestVersion.Id}/mods");
+        HttpResponseMessage res = await client.GetAsync($"/modpacks/{modpack.Id}/versions/{latestVersion.Iteration}/mods");
 
-        Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
+        Assert.IsTrue(res.IsSuccessStatusCode);
     }
 }

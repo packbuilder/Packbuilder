@@ -6,7 +6,7 @@ namespace Packbuilder.Tests.Factories;
 
 public partial class SuggestionFactory
 {
-    public Suggestion CreateSuggestion(User user, Modpack modpack, ModpackVersion modpackVersion)
+    public Suggestion CreateSuggestion(User user, Modpack modpack, ModpackVersion modpackVersion, SuggestionState suggestionState = SuggestionState.Unverified)
     {
         Faker faker = new();
         string memo = faker.Lorem.Paragraph();
@@ -22,6 +22,7 @@ public partial class SuggestionFactory
                 .RuleFor(s => s.ModLoader, (f, s) => ModLoader.Forge)
                 .RuleFor(s => s.GameVersion, (f, s) => "1.20")
                 .RuleFor(s => s.Modifications, (f, s) => [])
+                .RuleFor(s => s.State, (f, s) => suggestionState)
                 .RuleFor(s => s.Modpack, (f, s) => modpack);
 
         return suggestion;

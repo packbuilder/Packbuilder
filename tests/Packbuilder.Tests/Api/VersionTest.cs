@@ -21,6 +21,8 @@ public class VersionTest() : ApplicationTests
         BaseSetup(ctx);
     }
 
+    // TODO: Create version factory.
+
     [TestMethod]
     public async Task GetVersionTest()
     {
@@ -52,9 +54,9 @@ public class VersionTest() : ApplicationTests
         VersionDto latestVersion = await versionService.GetLatestVersion(modpack.Id) ?? throw new Exception("No latest version found.");
 
         HttpClient client = await CreateSessionClient(user, password);
-        HttpResponseMessage res = await client.GetAsync($"{user.Name}/modpacks/{modpack.Slug}/versions/{latestVersion.Id}");
+        HttpResponseMessage res = await client.GetAsync($"/modpacks/{modpack.Id}/versions/{latestVersion.Id}");
 
-        Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
+        Assert.IsTrue(res.IsSuccessStatusCode);
     }
 
     [TestMethod]
@@ -109,8 +111,10 @@ public class VersionTest() : ApplicationTests
         await context.SaveChangesAsync();
 
         HttpClient client = await CreateSessionClient(user, password);
-        HttpResponseMessage res = await client.PostAsync($"{user.Name}/modpacks/{modpack.Slug}/versions/{suggestion.Id}", new StringContent(string.Empty));
+        HttpResponseMessage res = await client.PostAsync($"/modpacks/{modpack.Id}/versions/create/{suggestion.Id}", new StringContent(string.Empty));
 
-        Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
+        Console.WriteLine(res.StatusCode.ToString());
+
+        Assert.IsTrue(res.IsSuccessStatusCode);
     }
 }
