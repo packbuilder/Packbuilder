@@ -90,8 +90,6 @@ namespace Packbuilder.Tests
                 Password = password
             });
 
-            Console.WriteLine(res.Headers.ToString());
-
             if(!res.IsSuccessStatusCode)
             {
 

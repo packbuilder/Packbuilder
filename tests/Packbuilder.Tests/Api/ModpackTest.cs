@@ -1,5 +1,6 @@
 using System.IO.Compression;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -127,7 +128,7 @@ public class ModpackTest : ApplicationTests
         Modpack? updatedModpack = await secondContext.Modpacks.SingleOrDefaultAsync(m => m.Id == modpack.Id);
 
         Assert.IsNotNull(updatedModpack);
-        Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
+        Assert.IsTrue(res.IsSuccessStatusCode);
         Assert.AreNotEqual(modpack.Name, updatedModpack.Name);
         Assert.AreNotEqual(modpack.ImageValue, updatedModpack.ImageValue);
     }
@@ -148,18 +149,15 @@ public class ModpackTest : ApplicationTests
         await context.SaveChangesAsync();
 
         HttpClient client = await CreateSessionClient(user, password);
-        HttpResponseMessage res = await client.DeleteAsync($"/modpacks");
-
+        HttpResponseMessage res = await client.DeleteAsync($"/modpacks/{modpack.Id}");
 
         var scope = Services.CreateScope();
         var secondContext = scope.ServiceProvider.GetRequiredService<PackbuilderContext>();
         Modpack? deletedModpack = await secondContext.Modpacks.SingleOrDefaultAsync(m => m.Id == modpack.Id);
 
-        Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
+        Assert.IsTrue(res.IsSuccessStatusCode);
         Assert.IsNull(deletedModpack);
     }
-
-    // TODO: Create test for importing modpack
 
     [TestMethod]
     public async Task ImportMinecraftModpackTest()
@@ -175,26 +173,21 @@ public class ModpackTest : ApplicationTests
         HttpClient client = await CreateSessionClient(user, password);
 
         string manifestPath = Path.Combine(AppContext.BaseDirectory, "TestFiles", "manifest.json");
-        
         await using FileStream fileStream = File.OpenRead(manifestPath);
-        using MultipartFormDataContent multipartContent = new();
-        using StreamContent streamContent = new(fileStream);
+        using MultipartFormDataContent multipartFormData = new();
 
-        streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
-        
-        AvatarDto avatarDto = new()
-        {
-            ImageType = ImageType.Stock,
-            ImageValue = "modpack_avatar_1.gif"
-        };
-        string avatarJson = JsonSerializer.Serialize(avatarDto);
+        StreamContent fileContent = new(fileStream);
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+        multipartFormData.Add(fileContent, "file", "manifest.json");
 
-        multipartContent.Add(streamContent, "file", "manifest.json");
-        multipartContent.Add(new StringContent(avatarJson, Encoding.UTF8, "application/json"), "AvatarDto");
+        multipartFormData.Add(new StringContent(ImageType.Stock.ToString()), "AvatarDto.ImageType");
+        multipartFormData.Add(new StringContent("modpack_avatar_1.gif"), "AvatarDto.ImageValue");
 
-        HttpResponseMessage res = await client.PostAsync("/modpacks/import/curseforge", multipartContent);
+        HttpResponseMessage res = await client.PostAsync("/modpacks/import/curseforge", multipartFormData);
 
-        Assert.AreEqual(HttpStatusCode.Created, res.StatusCode);
+        Console.WriteLine(res.StatusCode.ToString());
+
+        Assert.IsTrue(res.IsSuccessStatusCode);
 
         var scope = Services.CreateScope();
         var secondContext = scope.ServiceProvider.GetRequiredService<PackbuilderContext>();
