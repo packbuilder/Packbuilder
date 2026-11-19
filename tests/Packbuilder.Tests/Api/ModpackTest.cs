@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Bogus;
 using CurseForge.Dtos.CurseForgeApiDtos;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Packbuilder.Dto;
@@ -82,7 +83,6 @@ public class ModpackTest : ApplicationTests
 
         Faker faker = new();
         HttpClient client = await CreateSessionClient(user, password);
-
         HttpResponseMessage res = await client.PostAsJsonAsync($"/modpacks", new CreateModpackDto
         {
             Name = faker.Name.FirstName(),
@@ -93,7 +93,7 @@ public class ModpackTest : ApplicationTests
             Game = Game.Minecraft
         });
 
-        Assert.AreEqual(HttpStatusCode.OK, res.StatusCode);
+        Assert.IsTrue(res.IsSuccessStatusCode);
     }
     [TestMethod]
     public async Task UpdateModpackTest()

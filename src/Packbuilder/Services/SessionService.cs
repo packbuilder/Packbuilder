@@ -35,7 +35,12 @@ namespace Packbuilder.Services
 
             string token = GenerateJwtToken(user);
 
-            httpContextAccessor.HttpContext?.Response.Cookies.Append("access_token", token, new CookieOptions
+            if(httpContextAccessor.HttpContext is null)
+            {
+                throw new Exception("Could not create session, the current HttpContext is null.");
+            }
+
+            httpContextAccessor.HttpContext.Response.Cookies.Append("access_token", token, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
@@ -47,7 +52,12 @@ namespace Packbuilder.Services
         }
         public Task<User?> GetCurrentUser()
         {
-            string? userIdStr = httpContextAccessor.HttpContext!.User.Claims.SingleOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if(httpContextAccessor.HttpContext is null)
+            {
+                throw new Exception("Could not find current users session, the current HttpContext is null.");
+            }
+
+            string? userIdStr = httpContextAccessor.HttpContext.User.Claims.SingleOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
             if (int.TryParse(userIdStr, out int userId))
             {

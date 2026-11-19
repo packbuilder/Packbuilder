@@ -21,7 +21,7 @@ namespace Packbuilder.Controllers.ModpackControllers
     public class ModpacksController(PackbuilderContext context, IModpackService modpackService, ICurseForgeManifestService curseForgeManifestService, IExternalModService externalModService, ICurseForgeModpackService curseForgeModpackService, IPaginationService paginationService, ISessionService sessionService) : ControllerBase
     {
         [RateLimit(RateLimitBuckets.ModpackRead)]
-        [HttpGet("/user-modpacks/{userId:int}")]
+        [HttpGet("user-modpacks/{userId:int}")]
         [EndpointName("GetUserModpacks")]
         public async Task<ActionResult<List<Modpack>?>> GetUserModpacks([FromRoute] int userId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchQuery = "")
         {

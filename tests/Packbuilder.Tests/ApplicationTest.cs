@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using Bogus;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -10,6 +11,7 @@ using Packbuilder.Dto.Create;
 using Packbuilder.Interfaces;
 using Packbuilder.Models;
 using Packbuilder.Options;
+using Packbuilder.Policys;
 using Packbuilder.Services;
 using Packbuilder.Tests.Factories;
 using StackExchange.Redis;
@@ -64,6 +66,7 @@ namespace Packbuilder.Tests
                 .AddSingleton<UserFactory>()
                 .AddSingleton<SuggestionFactory>()
                 .AddSingleton<Faker>()
+                .AddScoped<IAuthorizationHandler, EmailVerifiedHandler>()
                 .BuildServiceProvider();
 
             Context = Services.GetRequiredService<PackbuilderContext>();
@@ -77,7 +80,8 @@ namespace Packbuilder.Tests
 
             HttpClient client = application.CreateClient(new WebApplicationFactoryClientOptions()
             {
-                HandleCookies = true
+                HandleCookies = true,
+                BaseAddress = new Uri("https://localhost")
             });
 
             HttpResponseMessage res = await client.PostAsJsonAsync("/sessions", new CreateSessionDto()
@@ -85,6 +89,8 @@ namespace Packbuilder.Tests
                 Email = user.Email,
                 Password = password
             });
+
+            Console.WriteLine(res.Headers.ToString());
 
             if(!res.IsSuccessStatusCode)
             {
